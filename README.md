@@ -361,7 +361,7 @@ Contributions for additional languages are welcome!
 
 ## Credits
 
-Bambu Lab and its logo are trademarks of Shenzhen Tuozhu Technology; OctoPrint and its logo belong to the OctoPrint project; Prusa and PrusaLink are trademarks of Prusa Research; Moonraker and Klipper belong to their projects. Their word marks are unreadable at badge size, so the cards show a plain monogram instead: a white crescent on red for Moonraker, a white P on orange for PrusaLink. Icons from [Material Design Icons](https://pictogrammers.com/library/mdi/). This project is not affiliated with any of them.
+Bambu Lab and its logo are trademarks of Shenzhen Tuozhu Technology; OctoPrint and its logo belong to the OctoPrint project; Prusa and PrusaLink are trademarks of Prusa Research; Moonraker and Klipper belong to their projects. Moonraker has no logo of its own, so its badge shows the mark of the [Klipper logo](https://github.com/Klipper3d/klipper/blob/master/docs/img/klipper.svg) (without its word mark, unreadable at badge size). The PrusaLink word mark is unreadable at badge size too, so its badge shows a plain monogram: a white P on orange. Icons from [Material Design Icons](https://pictogrammers.com/library/mdi/). This project is not affiliated with any of them.
 
 ## License
 
