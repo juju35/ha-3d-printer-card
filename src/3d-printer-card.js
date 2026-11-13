@@ -2434,8 +2434,27 @@ class PrinterBase extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this._html = "";
     this.shadowRoot.addEventListener("click", (ev) => this._onClick(ev));
+    this.shadowRoot.addEventListener("pointerdown", () => {
+      this._byPointer = true;
+      // No rewrite of the card between the press and the release: Home Assistant updates the card several times a
+      // second, and a rewrite under the pointer replaces the element pressed, so that the click lands on the card
+      // itself and does nothing. The pending render is done once released (after the click).
+      this._pressing = true;
+      window.addEventListener("pointerup", this._onPressEnd, true);
+      window.addEventListener("pointercancel", this._onPressEnd, true);
+    });
+    this._onPressEnd = () => {
+      window.removeEventListener("pointerup", this._onPressEnd, true);
+      window.removeEventListener("pointercancel", this._onPressEnd, true);
+      // After the click (same task): a press with no click (released elsewhere) draws what it held back.
+      setTimeout(() => {
+        this._pressing = false;
+        if (this._dirty) this._update();
+      }, 0);
+    };
     // Enter / Space on an element with the button role acts as a click, as on a <button>.
     this.shadowRoot.addEventListener("keydown", (ev) => {
+      this._byPointer = false;
       if ((ev.key !== "Enter" && ev.key !== " ") || ev.target?.getAttribute?.("role") !== "button") return;
       ev.preventDefault();
       ev.target.click();
@@ -2499,6 +2518,9 @@ class PrinterBase extends HTMLElement {
     this._tick = null;
     this._outside?.off();
     window.removeEventListener("keydown", this._onKey);
+    this._pressing = false;
+    window.removeEventListener("pointerup", this._onPressEnd, true);
+    window.removeEventListener("pointercancel", this._onPressEnd, true);
     // Left (another dashboard view, a conditional card hidden): back to the defaults, so that the card does not come
     // back unfolded or with its popup open.
     this._toggled = new Map();
@@ -2534,13 +2556,20 @@ class PrinterBase extends HTMLElement {
 
   _update() {
     if (!this._hass || !this._config) return;
+    // Not under a press either (see the pointerdown listener): drawn once released.
+    if (this._pressing) {
+      this._dirty = true;
+      return;
+    }
+    this._dirty = false;
     let html = this._render();
     if (this._confirm) {
       html = html.replace(/<ha-card([^>]*)>([\s\S]*)<\/ha-card>\s*$/, (_, attrs, inner) => `<ha-card${attrs} class="dialog-open">${inner}${this._confirmHtml()}</ha-card>`);
     }
     if (html === this._html) return;
     const focused = this._confirm && this.shadowRoot.activeElement?.dataset?.action;
-    const kept = this._confirm ? null : this._focusedSpot();
+    // The focus is kept across a rewrite for the keyboard only: after a mouse click, it would draw the focus ring.
+    const kept = this._confirm || this._byPointer ? null : this._focusedSpot();
     this._html = html;
     this.shadowRoot.innerHTML = html;
     this._placeImages();
@@ -2582,6 +2611,8 @@ class PrinterBase extends HTMLElement {
   }
 
   _onClick(ev) {
+    this._pressing = false;
+    if (ev.detail === 0) this._byPointer = false;
     const path = ev.composedPath();
     const el = path.find((n) => n?.dataset && (n.dataset.entity || n.dataset.action));
     if (!this._confirm && Date.now() - (this._confirmClosedAt ?? 0) < CONFIRM_GUARD_MS) {

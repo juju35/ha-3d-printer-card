@@ -254,6 +254,29 @@ test("folding: a tap elsewhere (pointer), not a press inside released outside; l
   mini.disconnectedCallback();
 });
 
+test("no rewrite under a press: the click renders at once, a release without a click draws what was held", async () => {
+  const hass = makeHass();
+  const card = newCard({}, hass);
+  card.connectedCallback();
+  const id = "sensor.x1_carbon_print_progress";
+  const before = html(card);
+  card.shadowRoot.listeners.pointerdown({});
+  card.hass = { ...hass, states: { ...hass.states, [id]: { ...hass.states[id], state: "48" } } };
+  assert.equal(html(card), before, "no rewrite under the pointer");
+  pc.window.fire("pointerup", {});
+  click(card, { action: "toggle_section", section: "job" });
+  assert.match(html(card), /48<small>%<\/small>/, "the click renders at once");
+  assert.match(html(card), /data-section="job" aria-expanded="true"/);
+  // Pressed and released elsewhere (no click): the held update is drawn after the release.
+  card.shadowRoot.listeners.pointerdown({});
+  card.hass = { ...hass, states: { ...hass.states, [id]: { ...hass.states[id], state: "49" } } };
+  assert.doesNotMatch(html(card), /49<small>%/);
+  pc.window.fire("pointerup", {});
+  await new Promise((r) => setTimeout(r, 0));
+  assert.match(html(card), /49<small>%<\/small>/);
+  card.disconnectedCallback();
+});
+
 test("an unrelated state change does not rebuild the card", () => {
   const hass = makeHass();
   const card = newCard({}, hass);
