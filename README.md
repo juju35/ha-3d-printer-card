@@ -164,16 +164,16 @@ language: fr
 | `show_subtitle` | both | `true` | Show the subtitle under the title (file being printed, else the printer model) |
 | `show_controls` | both | `true` | Pause / resume / stop buttons while a print is under way, each asking for a confirmation |
 | `show_light` | both | `true` | Light button (the printer's light, or `light_entity`) |
-| `zoom` | mini | `true` | Detail button at the top right of the mini card: it shows the full card's content (with the same options, so `show_ams`, `collapsed`… can be set on the mini card too) and switches back to the compact view; a click outside the card also brings the compact view back. `false` removes the button |
-| `show_thumbnail` | full | `true` | Thumbnail of the print next to the ring (cover image or job preview; the camera when `show_camera` is `false`) |
-| `show_temperatures` | full | `true` | Nozzle, bed and chamber temperatures |
-| `show_ams` | full | `true` | Filaments of the Bambu Lab AMS units and external spool |
-| `show_job` | full | `true` | Print job details: start time, weight, filament length, speed, material, file |
-| `show_camera` | full | `true` | Camera picture (click it for the live view) |
-| `collapsed` | full | `[job]` | Sections folded by default, among `ams`, `job` and `camera` (`[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it; a click anywhere else folds them back |
-| `camera_entity` | full | — | Camera or image entity to show instead of the integration's camera |
+| `zoom` | mini | `true` | Detail button at the top right of the mini card: it shows the full card's content (with the same options, so `show_ams`, `collapsed`, `camera_entity`… can be set on the mini card too, in its visual editor as well) and switches back to the compact view; a click outside the card also brings the compact view back. `false` removes the button |
+| `show_thumbnail` | both | `true` | Thumbnail of the print next to the ring (cover image or job preview; the camera when `show_camera` is `false`) |
+| `show_temperatures` | both | `true` | Nozzle, bed and chamber temperatures |
+| `show_ams` | both | `true` | Filaments of the Bambu Lab AMS units and external spool |
+| `show_job` | both | `true` | Print job details: start time, weight, filament length, speed, material, file |
+| `show_camera` | both | `true` | Camera picture (click it for the live view) |
+| `collapsed` | both | `[job]` | Sections folded by default, among `ams`, `job` and `camera` (`[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it; a click anywhere else folds them back |
+| `camera_entity` | both | — | Camera or image entity to show instead of the integration's camera |
 | `light_entity` | both | — | Light or switch entity for the light button |
-| `entities` | both | — | Entities set by hand, by key, on top of the ones found: `status`, `progress`, `remaining`, `end_time`, `start_time`, `layer`, `total_layers`, `nozzle`, `nozzle_target`, `bed`, `bed_target`, `chamber`, `chamber_target`, `file`, `cover`, `camera`, `light`, `pause`, `resume`, `continue`, `stop`, `weight`, `length`, `speed`, `material` |
+| `entities` | both | — | Entities set by hand, by key, on top of the ones found: `status`, `progress`, `remaining`, `end_time`, `start_time`, `layer`, `total_layers`, `nozzle`, `nozzle_target`, `bed`, `bed_target`, `chamber`, `chamber_target`, `file`, `cover`, `camera`, `light`, `pause`, `resume`, `continue`, `stop`, `weight`, `length`, `speed`, `material`. YAML only (the visual editor keeps it) |
 | `language` | both | Auto | Force language: `fr`, `en`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt`, `pl`, `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` or `el` (auto-detects from HA settings) |
 
 ## Screenshots
