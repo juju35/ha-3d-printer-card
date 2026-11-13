@@ -2364,6 +2364,40 @@ const isOutside = (card, ev) => {
   const path = ev.composedPath();
   return !path.includes(card) && !path.some((n) => DIALOG_TAGS.has(n?.tagName));
 };
+// "A click elsewhere" is caught on the pointer, not only on the click event: on iOS (Safari and the companion app)
+// a tap on something that is not clickable (the background, an empty spot, a card with no action) sends no click to
+// the page. It counts when the press and the release are both outside the card (a slider dragged out of the card
+// does not fold it), and a scroll does not count (the browser cancels the pointer). Keyboard clicks still go through
+// the click event. `tap(ev)` (press and release at the same spot) is for the tests.
+const watchOutside = (isOut, handler) => {
+  let downOutside = false;
+  const onDown = (ev) => {
+    downOutside = isOut(ev);
+  };
+  const onUp = (ev) => {
+    if (downOutside && isOut(ev)) handler(ev);
+    downOutside = false;
+  };
+  const onClick = (ev) => {
+    if (ev.detail === 0 && isOut(ev)) handler(ev);
+  };
+  return {
+    on() {
+      document.addEventListener("pointerdown", onDown, true);
+      document.addEventListener("pointerup", onUp, true);
+      document.addEventListener("click", onClick, true);
+    },
+    tap(ev) {
+      onDown(ev);
+      onUp(ev);
+    },
+    off() {
+      document.removeEventListener("pointerdown", onDown, true);
+      document.removeEventListener("pointerup", onUp, true);
+      document.removeEventListener("click", onClick, true);
+    },
+  };
+};
 // After the confirmation popup closes, clicks on the card are ignored for this long (second click of a double click).
 const CONFIRM_GUARD_MS = 400;
 
@@ -2441,13 +2475,18 @@ class PrinterBase extends HTMLElement {
   }
 
   connectedCallback() {
-    this._onOutside ??= (ev) => {
-      if ((!this._toggled?.size && !this._confirm) || !isOutside(this, ev)) return;
-      this._toggled = new Map();
-      if (this._confirm) this._closeConfirm();
-      else this._update();
-    };
-    document.addEventListener("click", this._onOutside, true);
+    this._outside ??= watchOutside(
+      (ev) => isOutside(this, ev),
+      () => {
+        if (!this._toggled?.size && !this._confirm) return;
+        this._toggled = new Map();
+        if (this._confirm) this._closeConfirm();
+        else this._update();
+      },
+    );
+    this._outside.on();
+    // Back on the page after leaving it: rendered again in its default state.
+    if (this._hass && this._config) this._update();
     if (this._confirm) window.addEventListener("keydown", this._onKey);
     clearInterval(this._tick);
     this._tick = setInterval(() => {
@@ -2458,8 +2497,12 @@ class PrinterBase extends HTMLElement {
   disconnectedCallback() {
     clearInterval(this._tick);
     this._tick = null;
-    document.removeEventListener("click", this._onOutside, true);
+    this._outside?.off();
     window.removeEventListener("keydown", this._onKey);
+    // Left (another dashboard view, a conditional card hidden): back to the defaults, so that the card does not come
+    // back unfolded or with its popup open.
+    this._toggled = new Map();
+    this._confirm = null;
   }
 
   // Service call whose failure Home Assistant already reports (toast): handled here, no "Uncaught (in promise)".
@@ -2962,9 +3005,12 @@ class PrinterCard extends PrinterBase {
 class PrinterMiniCard extends PrinterCard {
   constructor() {
     super();
-    this._onUnzoom = (ev) => {
-      if (this._zoomed && isOutside(this, ev)) this._setZoom(false);
-    };
+    this._unzoom = watchOutside(
+      (ev) => isOutside(this, ev),
+      () => {
+        if (this._zoomed) this._setZoom(false);
+      },
+    );
   }
 
   static getConfigElement() {
@@ -2973,12 +3019,14 @@ class PrinterMiniCard extends PrinterCard {
 
   connectedCallback() {
     super.connectedCallback();
-    document.addEventListener("click", this._onUnzoom, true);
+    this._unzoom.on();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    document.removeEventListener("click", this._onUnzoom, true);
+    this._unzoom.off();
+    // Back to the compact view once off the screen (see the full card).
+    this._zoomed = false;
   }
 
   getCardSize() {
