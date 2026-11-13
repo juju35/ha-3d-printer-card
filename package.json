@@ -1,6 +1,6 @@
 {
   "name": "ha-3d-printer-card",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Lovelace cards for Home Assistant to monitor and control 3D printers: Bambu Lab, OctoPrint, Moonraker / Klipper and PrusaLink.",
   "private": true,
   "type": "module",
