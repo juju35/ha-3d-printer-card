@@ -344,6 +344,21 @@ test("the editor keeps the YAML minimal", () => {
   assert.deepEqual(plain(events[0].detail.config), { type: "custom:printer-3d-card", device: "x1c", show_job: false });
 });
 
+test("the mini card editor offers the options of its detail view", () => {
+  const names = (schema) => schema.flatMap((s) => (s.schema ? names(s.schema) : [s.name]));
+  const full = new pc.PrinterCardEditor();
+  full.setConfig({ type: "custom:printer-3d-card" });
+  full.hass = makeHass();
+  const mini = new pc.PrinterMiniCardEditor();
+  mini.setConfig({ type: "custom:printer-3d-mini-card" });
+  mini.hass = makeHass();
+  const miniNames = names(mini._form.schema);
+  for (const name of names(full._form.schema)) assert.ok(miniNames.includes(name), `mini editor misses ${name}`);
+  assert.ok(miniNames.includes("zoom"));
+  assert.ok(!miniNames.includes("entities"));
+  assert.deepEqual(plain(mini._form.data.collapsed), ["job"]);
+});
+
 test("every language has every text, and the language list matches the translations", () => {
   const keys = Object.keys(pc.STRINGS.en);
   for (const [l, table] of Object.entries(pc.STRINGS)) {

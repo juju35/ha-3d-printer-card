@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3 - 2026-11-14
+
+### Fixes
+- **Mini card visual editor**: its detail view is the full card, but its editor offered only the header, controls, light and detail button options. It now offers every option of the full card too: thumbnail, temperatures, AMS, job and camera sections, folded sections and camera entity.
+- **README**: these options are marked as working on both cards, and `entities` is marked as YAML only (the visual editor keeps it).
+
 ## 1.0.2 - 2026-11-13
 
 ### Fixes

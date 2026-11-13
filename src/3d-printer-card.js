@@ -3217,19 +3217,10 @@ class PrinterCardEditor extends PrinterEditorBase {
   }
 }
 
-class PrinterMiniCardEditor extends PrinterEditorBase {
+// The mini card's detail view is the full card: its editor offers the full card's options, plus the detail button.
+class PrinterMiniCardEditor extends PrinterCardEditor {
   static get toggles() {
-    return [
-      ["show_title", true],
-      ["show_subtitle", true],
-      ["show_controls", true],
-      ["show_light", true],
-      ["zoom", true],
-    ];
-  }
-
-  static get defaults() {
-    return {};
+    return [...PrinterCardEditor.toggles, ["zoom", true]];
   }
 }
 
