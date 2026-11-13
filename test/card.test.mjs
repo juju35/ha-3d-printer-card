@@ -220,11 +220,38 @@ test("sections fold and unfold, and fold back on a click elsewhere", () => {
   assert.match(html(card), /data-section="ams" aria-expanded="true"/);
   click(card, { action: "toggle_section", section: "job" });
   assert.match(html(card), /data-section="job" aria-expanded="true"/);
-  card._onOutside({ composedPath: () => [{ tagName: "HA-MORE-INFO-DIALOG" }] });
+  card._outside.tap({ composedPath: () => [{ tagName: "HA-MORE-INFO-DIALOG" }] });
   assert.match(html(card), /data-section="job" aria-expanded="true"/, "a click in the more-info dialog keeps it");
-  card._onOutside({ composedPath: () => [{ tagName: "DIV" }] });
+  card._outside.tap({ composedPath: () => [{ tagName: "DIV" }] });
   assert.match(html(card), /data-section="job" aria-expanded="false"/);
   card.disconnectedCallback();
+});
+
+test("folding: a tap elsewhere (pointer), not a press inside released outside; leaving the page folds back", () => {
+  const card = newCard();
+  card.connectedCallback();
+  click(card, { action: "toggle_section", section: "job" });
+  // Pressed in the card (a slider dragged out of it): nothing folds.
+  card._outside.tap({ composedPath: () => [card] });
+  assert.match(html(card), /data-section="job" aria-expanded="true"/);
+  // A tap on a spot that sends no click (iOS): the pointer alone folds it.
+  card._outside.tap({ composedPath: () => [] });
+  assert.match(html(card), /data-section="job" aria-expanded="false"/);
+  // Left with a section open and back: folded.
+  click(card, { action: "toggle_section", section: "job" });
+  card.disconnectedCallback();
+  card.connectedCallback();
+  assert.match(html(card), /data-section="job" aria-expanded="false"/);
+  card.disconnectedCallback();
+  // The mini card comes back compact.
+  const mini = newCard({}, makeHass(), pc.PrinterMiniCard);
+  mini.connectedCallback();
+  click(mini, { action: "zoom" });
+  assert.match(html(mini), /class="tiles"/);
+  mini.disconnectedCallback();
+  mini.connectedCallback();
+  assert.doesNotMatch(html(mini), /class="tiles"/);
+  mini.disconnectedCallback();
 });
 
 test("an unrelated state change does not rebuild the card", () => {
@@ -252,7 +279,7 @@ test("the mini card shows a compact ring and switches to the full card and back"
   assert.doesNotMatch(html(card), /class="tiles"/);
   click(card, { action: "zoom" });
   assert.match(html(card), /class="tiles"/);
-  card._onUnzoom({ composedPath: () => [{ tagName: "DIV" }] });
+  card._unzoom.tap({ composedPath: () => [{ tagName: "DIV" }] });
   assert.doesNotMatch(html(card), /class="tiles"/);
   assert.doesNotMatch(html(newCard({ zoom: false }, makeHass(), pc.PrinterMiniCard)), /data-action="zoom"/);
   card.disconnectedCallback();
