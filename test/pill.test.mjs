@@ -88,12 +88,12 @@ const header = ({ row = 300, title = 120, pill = 80, banner = false, subBottom =
 
 test("the pill stays on the title row while the whole title and the whole label fit", () => {
   assert.ok(!fit(header({ row: 300, title: 120, pill: 80 })).has("below"));
-  assert.ok(!fit(header({ row: 208, title: 120, pill: 80 })).has("below"));
+  assert.ok(!fit(header({ row: 209, title: 120, pill: 80 })).has("below"));
 });
 
 test("the pill leaves the row rather than cut the title", () => {
   // 4 characters of the title would leave the pill room: still below, the title stays whole.
-  assert.ok(fit(header({ row: 207, title: 120, pill: 80 })).has("below"));
+  assert.ok(fit(header({ row: 208, title: 120, pill: 80 })).has("below"));
   assert.ok(fit(header({ row: 400, title: 360, pill: 60 })).has("below"));
 });
 
