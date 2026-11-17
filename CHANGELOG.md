@@ -8,7 +8,7 @@
 - **Night picture**: after sunset (`sun.sun`), else in dark mode; `illustration_theme: day | night` forces one. `illustration: false` brings back the classic header. Both options are in the visual editors, translated in every language. Animations stop with `prefers-reduced-motion`.
 - With the illustration, the name of the file being printed moves from the header to the progress lines of the full card.
 - **Status pill**: the colored status pill (same color as the icon) is back on the name's line, on the full and the mini card; on a narrow card it takes its own line under the subtitle, and only its dot below 200 px. The subtitle keeps the progress or the model.
-- **Mini card detail button**: a 24 px glass disc in the banner's top-right corner, the printer drawn clear of it.
+- **Mini card detail button**: a 24 px glass disc in the banner's top-right corner, the printer drawn clear of it (smaller and below the button on a card of 300 px or less).
 
 ## 1.0.3 - 2026-11-14
 

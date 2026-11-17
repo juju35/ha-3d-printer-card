@@ -2525,6 +2525,11 @@ const BANNER_STYLE = `
   .banner.has-zoom .htext { right: calc(var(--pc-scene-w) + 30px); padding-right: 2px; }
   /* Narrow card: the picture keeps its height and loses its left part, the printer stays. */
   @container (max-width: 300px) { .banner { --pc-scene-w: 84px; } .htext { padding-left: 10px; gap: 8px; } }
+  /* Narrow mini card: a smaller printer under the corner button, its top below the button's line. */
+  @container (max-width: 300px) {
+    .banner.has-zoom .scene { right: 4px; height: calc(100% - var(--pc-ground) - 26px); }
+    .banner.has-zoom .htext { right: calc(var(--pc-scene-w) + 4px); }
+  }
   /* Not enough room beside the name: the pill takes its own line under the subtitle; very narrow: its dot alone. */
   @container pc-htext (max-width: 200px) { .htext .tline { display: contents; } .htext .chip { grid-row: 3; justify-self: start; max-width: 100%; margin-top: 3px; } }
   @container pc-card (max-width: 260px) { .htext { gap: 6px; } .banner .type-icon { width: 32px; height: 32px; } .banner .type-icon .icon.type { width: 20px; height: 20px; } }
