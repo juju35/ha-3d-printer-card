@@ -2254,14 +2254,13 @@ const workshopSvg = (n) => {
 const bannerPrinterSvg = (phase, pct, filament) =>
   printerSvg(phase, pct, filament).replace('<svg class="printer" viewBox="0 0 80 80"', '<svg class="printer" x="126.4" y="8" width="69.6" height="72" viewBox="5.4 3.4 69.2 71.6"');
 
-// Night picture: forced by illustration_theme, else the sun below the horizon, else Home Assistant's dark mode.
+// Night picture: forced by illustration_theme, else the sun below the horizon or Home Assistant's dark mode
+// (the dark theme shows the night picture even while the sun is up; an unavailable sun leaves the dark mode alone).
 const isNight = (hass, config) => {
   const theme = config.illustration_theme;
   if (theme === "night") return true;
   if (theme === "day") return false;
-  const sun = hass?.states?.["sun.sun"];
-  if (sun && sun.state !== "unavailable" && sun.state !== "unknown") return sun.state === "below_horizon";
-  return !!hass?.themes?.darkMode;
+  return hass?.states?.["sun.sun"]?.state === "below_horizon" || !!hass?.themes?.darkMode;
 };
 
 // ---------------------------------------------------------------------------

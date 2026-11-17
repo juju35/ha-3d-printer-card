@@ -429,5 +429,11 @@ test("the illustration's night: illustration_theme, else the sun, else the dark 
   assert.equal(pc.isNight(sun("below_horizon"), { illustration_theme: "day" }), false);
   assert.equal(pc.isNight(sun("above_horizon"), { illustration_theme: "night" }), true);
   assert.equal(pc.isNight({ states: {}, themes: { darkMode: true } }, {}), true);
+  const sunDark = (state) => ({ states: { "sun.sun": { state } }, themes: { darkMode: true } });
+  assert.equal(pc.isNight(sunDark("above_horizon"), {}), true, "dark theme while the sun is up: night");
+  assert.equal(pc.isNight(sun("above_horizon"), { illustration_theme: "auto" }), false, "light theme while the sun is up: day");
+  assert.equal(pc.isNight(sunDark("above_horizon"), { illustration_theme: "day" }), false);
+  assert.equal(pc.isNight(sun("above_horizon"), { illustration_theme: "night" }), true);
+  assert.equal(pc.isNight({ states: { "sun.sun": { state: "unavailable" } }, themes: { darkMode: false } }, {}), false);
   assert.match(html(newCard({ illustration_theme: "night" })), /class="banner night /);
 });
