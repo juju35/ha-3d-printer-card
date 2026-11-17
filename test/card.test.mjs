@@ -400,3 +400,48 @@ test("the drawn printer's part grows with the progress", () => {
   assert.ok(h(10) < h(50) && h(50) < h(100));
   assert.doesNotMatch(pc.printerSvg("idle", 0, "#fff"), /class="part"/);
 });
+
+test("the illustrated header: printer on its bench, status and progress, brand badge, classic header with illustration: false", () => {
+  const h = html(newCard());
+  assert.match(h, /class="banner ph-printing anim-printing"/);
+  assert.match(h, /<svg class="printer" x="126.4" y="8"/);
+  assert.match(h, /class="ground"/);
+  // The status pill on the title's line, in the icon's color; the ring shows the progress, so the subtitle names the
+  // print (not the progress or the status again).
+  assert.match(h, /<div class="tline">\s*<div class="name">X1 Carbon<\/div>\s*<span class="chip clickable active"[^>]*><span class="dot"><\/span><span class="chip-text">Printing<\/span>/);
+  assert.match(h, /<div class="sub"[^>]*>Desk organizer<\/div>/);
+  assert.doesNotMatch(h, /<div class="sub"[^>]*>47 %<\/div>/);
+  assert.doesNotMatch(h, /Printing · 47 %/);
+  assert.equal(h.match(/Desk organizer/g).length, 2, "the print's name once in the subtitle (text and tooltip), not again in the body");
+  assert.match(h, /class="logo-link type-icon active"/);
+  assert.match(h, /class="logo"/);
+  assert.doesNotMatch(h, /class="header"/);
+  assert.match(html(newCard({}, makeHass({ "sensor.x1_carbon_print_status": { state: "idle" } }))), /type-icon idle"/);
+  const classic = html(newCard({ illustration: false }));
+  assert.match(classic, /class="header"/);
+  assert.doesNotMatch(classic, /class="banner/);
+  const mini = html(newCard({}, makeHass(), pc.PrinterMiniCard));
+  assert.match(mini, /class="banner has-zoom ph-printing/);
+  assert.match(mini, /class="chip clickable active"/);
+  // The compact mini card has no body for the print's name: its subtitle keeps the progress; expanded, it names the print.
+  assert.match(mini, /<div class="sub"[^>]*>47 %<\/div>/);
+  const zoomed = newCard({}, makeHass(), pc.PrinterMiniCard);
+  zoomed._setZoom(true);
+  assert.match(html(zoomed), /<div class="sub"[^>]*>Desk organizer<\/div>/);
+});
+
+test("the illustration's night: illustration_theme, else the sun, else the dark mode", () => {
+  const sun = (state) => ({ states: { "sun.sun": { state } }, themes: { darkMode: false } });
+  assert.equal(pc.isNight(sun("below_horizon"), {}), true);
+  assert.equal(pc.isNight(sun("above_horizon"), {}), false);
+  assert.equal(pc.isNight(sun("below_horizon"), { illustration_theme: "day" }), false);
+  assert.equal(pc.isNight(sun("above_horizon"), { illustration_theme: "night" }), true);
+  assert.equal(pc.isNight({ states: {}, themes: { darkMode: true } }, {}), true);
+  const sunDark = (state) => ({ states: { "sun.sun": { state } }, themes: { darkMode: true } });
+  assert.equal(pc.isNight(sunDark("above_horizon"), {}), true, "dark theme while the sun is up: night");
+  assert.equal(pc.isNight(sun("above_horizon"), { illustration_theme: "auto" }), false, "light theme while the sun is up: day");
+  assert.equal(pc.isNight(sunDark("above_horizon"), { illustration_theme: "day" }), false);
+  assert.equal(pc.isNight(sun("above_horizon"), { illustration_theme: "night" }), true);
+  assert.equal(pc.isNight({ states: { "sun.sun": { state: "unavailable" } }, themes: { darkMode: false } }, {}), false);
+  assert.match(html(newCard({ illustration_theme: "night" })), /class="banner night /);
+});

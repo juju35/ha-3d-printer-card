@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0 - 2026-11-17
+
+### Features
+- **Illustrated header**: the full and the mini card open on a 90 px banner. The card's own drawn printer stands on a workshop bench at the right (pegboard, filament spools, window), with its animations of the state: the toolhead sweeps and the spool turns while printing, heat rises while preparing, the toolhead parks when paused, the part sparkles when finished. The name and the status (with the progress while a job runs) sit on the wall at the left, next to the round printer icon and its integration logo badge; a 10 px bench strip runs edge to edge at the bottom.
+- **Status color on the icon**: the round icon always tells the state, day and night: blue printing or preparing, amber paused, green finished, red on an error or offline, grey idle.
+- **Night picture**: after sunset (`sun.sun`) or with the dark theme; `illustration_theme: day | night` forces one. `illustration: false` brings back the classic header. Both options are in the visual editors, translated in every language. Animations stop with `prefers-reduced-motion`.
+- **No repeated progress**: where the body's ring shows the big progress (full card, expanded mini card), the header's subtitle names the print being made (else the model) instead of repeating the percentage, and the progress lines no longer repeat the name; the compact mini card, which has no room for the name, keeps the progress in its subtitle.
+- **Status pill**: the colored status pill (same color as the icon) is back on the name's line, right after the name, on the full and the mini card, with or without the illustration, as long as the name stays whole and the pill keeps its whole label beside it (measured by the card in every language, no fixed width threshold). Otherwise it takes its own line under the subtitle, which then keeps one line; it keeps only its dot when even that does not fit the banner, and below 200 px.
+- **Mini card detail button**: a 24 px glass disc in the banner's top-right corner, the printer drawn clear of it (smaller and below the button on a card of 300 px or less).
+- **Night picture with the dark theme even while the sun is up**: in `auto`, the banner shows the night picture when the sun is below the horizon or Home Assistant's theme is dark.
+
 ## 1.0.3 - 2026-11-14
 
 ### Fixes

@@ -111,7 +111,7 @@ export const load = () => {
   vm.createContext(sandbox);
   return vm.runInContext(
     `${source}
-    ({ fmtHours, hoursOf, esc, resolve, findPrinter, phaseOf, lang, intlLocale, filamentColor, fmtTemp, printerSvg, STRINGS, LANGUAGES, BRANDS, PHASES,
+    ({ fmtHours, hoursOf, esc, resolve, isNight, findPrinter, phaseOf, lang, intlLocale, filamentColor, fmtTemp, printerSvg, STRINGS, LANGUAGES, BRANDS, PHASES,
        PrinterCard: customElements.get("printer-3d-card"), PrinterMiniCard: customElements.get("printer-3d-mini-card"),
        PrinterCardEditor: customElements.get("printer-3d-card-editor"),
        PrinterMiniCardEditor: customElements.get("printer-3d-mini-card-editor"), window, document })`,
