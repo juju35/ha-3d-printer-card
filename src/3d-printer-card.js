@@ -2970,10 +2970,12 @@ class PrinterBase extends HTMLElement {
   // workshop's wall, the card's printer on its bench, drawn in the phase (same animations as in the ring).
   _banner(dev, phase, { b, cls, label, status }) {
     const pct = this._progress(dev, phase);
-    const sub = JOB_PHASES.has(phase) && pct !== null ? `${pct} %` : dev.model || b.name;
     const zoom = this._zoomButton();
     const night = isNight(this._hass, this._config);
     const file = JOB_PHASES.has(phase) || phase === "finished" ? this._fileName(dev) : "";
+    // The body's ring already shows the progress (full card, expanded mini card): the subtitle names the print
+    // instead. The compact mini card has no room for the name: its subtitle keeps the progress.
+    const sub = this._heroInBody() ? file || dev.model || b.name : JOB_PHASES.has(phase) && pct !== null ? `${pct} %` : dev.model || b.name;
     return `
       <div class="banner${night ? " night" : ""}${zoom ? " has-zoom" : ""} ph-${phase} ${RING_ANIM[phase] || ""}">
         <svg class="scene" viewBox="0 0 200 80" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false">${workshopSvg(night)}${bannerPrinterSvg(
@@ -2994,6 +2996,11 @@ class PrinterBase extends HTMLElement {
         </div>
         ${zoom}
       </div>`;
+  }
+
+  // Whether the body shows the big progress (hero): always on the full card, only expanded on the mini card.
+  _heroInBody() {
+    return true;
   }
 
   // Header icon color: the phase, red when the printer reports an error.
@@ -3136,9 +3143,6 @@ class PrinterCard extends PrinterBase {
     const lines = [];
     const err = this._error(dev, phase);
     if (err) lines.push(`<div class="alert-line">${svgIcon(ICONS.alert)}<span>${esc(err)}</span></div>`);
-    // With the illustration, the header shows the status: the name of the print moves here.
-    const file = this._config.illustration !== false && (job || phase === "finished") ? this._fileName(dev) : "";
-    if (file) lines.push(`<div class="line">${svgIcon(ICONS.file)}<span>${esc(file)}</span></div>`);
     lines.push(this._timeLine(dev, phase));
     const layers = job || phase === "finished" ? this._layers(dev) : "";
     if (layers) lines.push(`<div class="line clickable" role="button" tabindex="0" data-entity="${esc(dev.e.layer)}">${svgIcon(ICONS.layers)}<span>${esc(layers)}</span></div>`);
@@ -3304,6 +3308,10 @@ class PrinterMiniCard extends PrinterCard {
 
   getGridOptions() {
     return { ...(this._zoomed ? super.getGridOptions() : { columns: 6, min_columns: 6 }), rows: "auto" };
+  }
+
+  _heroInBody() {
+    return !!this._zoomed;
   }
 
   _zoomButton() {

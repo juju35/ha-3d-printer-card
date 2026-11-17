@@ -406,10 +406,13 @@ test("the illustrated header: printer on its bench, status and progress, brand b
   assert.match(h, /class="banner ph-printing anim-printing"/);
   assert.match(h, /<svg class="printer" x="126.4" y="8"/);
   assert.match(h, /class="ground"/);
-  // The status pill on the title's line, in the icon's color; the subtitle keeps the progress, not the status again.
+  // The status pill on the title's line, in the icon's color; the ring shows the progress, so the subtitle names the
+  // print (not the progress or the status again).
   assert.match(h, /<div class="tline">\s*<div class="name">X1 Carbon<\/div>\s*<span class="chip clickable active"[^>]*><span class="dot"><\/span><span class="chip-text">Printing<\/span>/);
-  assert.match(h, /<div class="sub"[^>]*>47 %<\/div>/);
+  assert.match(h, /<div class="sub"[^>]*>Desk organizer<\/div>/);
+  assert.doesNotMatch(h, /<div class="sub"[^>]*>47 %<\/div>/);
   assert.doesNotMatch(h, /Printing · 47 %/);
+  assert.equal(h.match(/Desk organizer/g).length, 2, "the print's name once in the subtitle (text and tooltip), not again in the body");
   assert.match(h, /class="logo-link type-icon active"/);
   assert.match(h, /class="logo"/);
   assert.doesNotMatch(h, /class="header"/);
@@ -420,6 +423,11 @@ test("the illustrated header: printer on its bench, status and progress, brand b
   const mini = html(newCard({}, makeHass(), pc.PrinterMiniCard));
   assert.match(mini, /class="banner has-zoom ph-printing/);
   assert.match(mini, /class="chip clickable active"/);
+  // The compact mini card has no body for the print's name: its subtitle keeps the progress; expanded, it names the print.
+  assert.match(mini, /<div class="sub"[^>]*>47 %<\/div>/);
+  const zoomed = newCard({}, makeHass(), pc.PrinterMiniCard);
+  zoomed._setZoom(true);
+  assert.match(html(zoomed), /<div class="sub"[^>]*>Desk organizer<\/div>/);
 });
 
 test("the illustration's night: illustration_theme, else the sun, else the dark mode", () => {

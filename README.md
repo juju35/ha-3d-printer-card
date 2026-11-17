@@ -161,10 +161,10 @@ language: fr
 |---|---|---|---|
 | `device` | both | First printer | Printer to display: its name (as shown in Home Assistant) or its device id (set by the visual editor) |
 | `title` | both | Device name | Card title |
-| `illustration` | both | `true` | Illustrated header: the printer on its workshop bench, drawn in its state, with the status and progress as subtitle (the file being printed moves to the progress lines). `false`: classic header with the status chip |
+| `illustration` | both | `true` | Illustrated header: the printer on its workshop bench, drawn in its state, with the status pill on the title's line. `false`: classic header with the status chip |
 | `illustration_theme` | both | `auto` | Picture of the illustrated header: `auto` (night when the sun is below the horizon or with the dark theme, even while the sun is up), `day` or `night` |
 | `show_title` | both | `true` | Show the title in the header (e.g. `false` under a section heading of your own) |
-| `show_subtitle` | both | `true` | Show the subtitle under the title (illustrated header: the status and progress; classic header: the file being printed, else the printer model) |
+| `show_subtitle` | both | `true` | Show the subtitle under the title: the file being printed, else the printer model (compact mini card with the illustration: the progress) |
 | `show_controls` | both | `true` | Pause / resume / stop buttons while a print is under way, each asking for a confirmation |
 | `show_light` | both | `true` | Light button (the printer's light, or `light_entity`) |
 | `zoom` | mini | `true` | Detail button at the top right of the mini card: it shows the full card's content (with the same options, so `show_ams`, `collapsed`, `camera_entity`… can be set on the mini card too, in its visual editor as well) and switches back to the compact view; a click outside the card also brings the compact view back. `false` removes the button |
