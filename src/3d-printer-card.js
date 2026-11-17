@@ -2301,6 +2301,20 @@ const BASE_STYLE = `
                      background: #fff;
                      box-shadow: 0 0 0 1px var(--divider-color, rgba(0,0,0,.12)), 0 0 0 3px var(--card-background-color, #fff); }
   .titles { flex: 1 1 0; min-width: 5ch; font-size: 16px; }
+  /* The status pill right after the title, its whole label on one line, while the title stays whole beside it
+     (measured by the card, see _fitPill); otherwise on its own line under a one-line subtitle, and with its dot alone
+     when even that does not fit the header. */
+  .tline { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .tline > .name { flex: 0 1 auto; min-width: 0; }
+  .tline > .chip { flex: none; max-width: none; }
+  .tline > .chip .chip-text { white-space: nowrap; overflow: visible; }
+  .titles.below { display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; }
+  .titles.below > .tline { display: contents; }
+  .titles.below > .tline > .chip { order: 3; justify-self: start; align-self: start; margin-top: 3px; }
+  .titles.below > .sub { order: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .titles.dot-only > .tline { display: flex; }
+  .titles.dot-only > .tline > .chip { order: 0; margin-top: 0; align-self: center; padding: 4px; }
+  .titles.dot-only > .tline > .chip .chip-text { display: none; }
   :host([hide-title]) .titles .name, :host([hide-subtitle]) .titles > .sub { display: none; }
   .name { font-size: 16px; font-weight: 500; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sub { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2396,7 +2410,7 @@ const BASE_STYLE = `
   @keyframes pc-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(.86); } }
   @keyframes pc-draw { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
   /* Narrow card: the status chip keeps only its colored dot (its text stays in title and aria-label). */
-  @container (max-width: 230px) {
+  @container (max-width: 200px) {
     .header .chip { padding: 4px; flex: none; }
     .header .chip-text { display: none; }
   }
@@ -2501,10 +2515,8 @@ const BANNER_STYLE = `
            gap: 10px; padding: 8px 8px 8px 14px; min-width: 0; box-sizing: border-box; container: pc-htext / inline-size; }
   .htext .titles { flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; }
   .htext .sub { font-size: 13px; color: var(--pc-sky-muted); }
-  /* The status pill right after the name, centred on it; the name ellipsises first (4 characters kept at least). */
-  .htext .tline { display: flex; align-items: center; gap: 8px; min-width: 0; }
-  .htext .tline .name { flex: 0 1 auto; min-width: 4ch; }
-  .banner .chip { flex: 0 0 auto; max-width: 51%; background: color-mix(in srgb, var(--c) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c) 45%, #0d2a45); }
+  /* The status pill right after the name, centred on it (placed by _fitPill). */
+  .banner .chip { background: color-mix(in srgb, var(--c) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c) 45%, #0d2a45); }
   .banner.night .chip { background: color-mix(in srgb, var(--c) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c) 35%, #ffffff); }
   .banner .chip .dot { width: 7px; height: 7px; }
   /* The round icon: its color always tells the status (running: state color, idle: grey, warning: amber, error: red). */
@@ -2529,8 +2541,7 @@ const BANNER_STYLE = `
     .banner.has-zoom .scene { right: 4px; height: calc(100% - var(--pc-ground) - 26px); }
     .banner.has-zoom .htext { right: calc(var(--pc-scene-w) + 4px); }
   }
-  /* Not enough room beside the name: the pill takes its own line under the subtitle; very narrow: its dot alone. */
-  @container pc-htext (max-width: 200px) { .htext .tline { display: contents; } .htext .chip { grid-row: 3; justify-self: start; max-width: 100%; margin-top: 3px; } }
+  /* Very narrow card: the pill keeps its dot alone. */
   @container pc-card (max-width: 260px) { .htext { gap: 6px; } .banner .type-icon { width: 32px; height: 32px; } .banner .type-icon .icon.type { width: 20px; height: 20px; } }
   @container pc-card (max-width: 200px) { .htext .chip { padding: 4px; } .htext .chip-text { display: none; } }
   /* Very narrow card (mini card on a phone): the wall alone, the name and the status keep the room. */
@@ -2559,6 +2570,13 @@ const MINI_STYLE = `
 
 // Element names of Home Assistant dialogs (more-info opened from the card, among others).
 const DIALOG_TAGS = new Set(["HA-MORE-INFO-DIALOG", "HA-DIALOG", "DIALOG"]);
+// The width of an element's whole text in fractional pixels, even while an ellipsis cuts it.
+const textWidth = (el) => {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  return range.getBoundingClientRect().width || el.scrollWidth;
+};
+
 const isOutside = (card, ev) => {
   const path = ev.composedPath();
   return !path.includes(card) && !path.some((n) => DIALOG_TAGS.has(n?.tagName));
@@ -2703,6 +2721,18 @@ class PrinterBase extends HTMLElement {
       },
     );
     this._outside.on();
+    // A new width (or the web font loaded): the status pill is fitted again, in the next frame.
+    if (typeof ResizeObserver === "function") {
+      this._resize ??= new ResizeObserver((entries) => {
+        const w = Math.round(entries.at(-1).contentRect.width);
+        if (w === this._fitWidth) return;
+        this._fitWidth = w;
+        cancelAnimationFrame(this._fitFrame);
+        this._fitFrame = requestAnimationFrame(() => this._fitPill());
+      });
+      this._resize.observe(this);
+    }
+    document.fonts?.ready?.then(() => this._fitPill());
     // Back on the page after leaving it: rendered again in its default state.
     if (this._hass && this._config) this._update();
     if (this._confirm) window.addEventListener("keydown", this._onKey);
@@ -2715,6 +2745,8 @@ class PrinterBase extends HTMLElement {
   disconnectedCallback() {
     clearInterval(this._tick);
     this._tick = null;
+    this._resize?.disconnect();
+    this._fitWidth = null;
     this._outside?.off();
     window.removeEventListener("keydown", this._onKey);
     this._pressing = false;
@@ -2724,6 +2756,45 @@ class PrinterBase extends HTMLElement {
     // back unfolded or with its popup open.
     this._toggled = new Map();
     this._confirm = null;
+  }
+
+  // The header's status pill goes right after the title, on its row, only while the title stays whole and the
+  // pill's whole label fits beside it; otherwise it takes a line of its own under the subtitle (.below), the title
+  // whole on its row (cut only when it does not fit alone). There, in the banner, the subtitle keeps one line; if the
+  // text still does not fit above the ground strip, the pill keeps its dot alone (.dot-only, its label in its tooltip
+  // and for screen readers). Measured after each render and on each new width, whatever the language: no fixed
+  // width threshold.
+  _fitPill() {
+    for (const t of this.shadowRoot?.querySelectorAll?.(".titles") || []) {
+      const row = t.querySelector(".tline");
+      const pills = row ? [...row.children].filter((n) => n.matches(".chip")) : [];
+      if (!pills.length || !pills[0].getBoundingClientRect) continue;
+      t.classList.remove("below", "dot-only");
+      const name = row.querySelector(".name");
+      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const title = name && getComputedStyle(name).display !== "none" ? textWidth(name) + gap : 0;
+      const need = pills.reduce((w, p) => w + p.getBoundingClientRect().width + gap, title - gap);
+      if (need > row.getBoundingClientRect().width + 0.5) {
+        t.classList.add("below");
+        const banner = t.closest(".banner");
+        if (banner) {
+          const b = banner.getBoundingClientRect();
+          const out = [...t.querySelectorAll("*")].some((n) => {
+            const r = n.getBoundingClientRect();
+            return r.height > 0 && (r.top < b.top - 0.5 || r.bottom > b.bottom - (parseFloat(getComputedStyle(banner).getPropertyValue("--pc-ground")) || 10) + 0.5);
+          });
+          if (out) t.classList.add("dot-only");
+        }
+      }
+      // A subtitle cut by its ellipsis keeps its whole text in its tooltip.
+      const s = t.querySelector(".sub");
+      if (s && (!s.hasAttribute("title") || s.dataset.fit)) {
+        const cut = s.scrollWidth > s.clientWidth + 1;
+        s.toggleAttribute("data-fit", cut);
+        if (cut) s.title = s.textContent.trim();
+        else s.removeAttribute("title");
+      }
+    }
   }
 
   // Service call whose failure Home Assistant already reports (toast): handled here, no "Uncaught (in promise)".
@@ -2772,6 +2843,7 @@ class PrinterBase extends HTMLElement {
     this._html = html;
     this.shadowRoot.innerHTML = html;
     this._placeImages();
+    this._fitPill();
     if (kept) this._focusables(kept.key)[kept.index]?.focus({ preventScroll: true });
     if (this._confirm) {
       const sel = focused === "confirm_cancel" ? '[data-action="confirm_cancel"]' : ".modal .primary";
@@ -2958,10 +3030,12 @@ class PrinterBase extends HTMLElement {
       <div class="header">
         <a class="logo-link type-icon ${cls}" href="${b.site}" target="_blank" rel="noopener noreferrer" title="${esc(b.name)}">${imgTag(b.logo, `class="logo" alt="${esc(b.name)}"`)}${svgIcon(ICONS.printer, "type")}</a>
         <div class="titles">
-          <div class="name">${esc(this._config.title || dev.name)}</div>
+          <div class="tline">
+            <div class="name">${esc(this._config.title || dev.name)}</div>
+            <span class="chip clickable ${PHASE_CLASS[phase]}" role="button" tabindex="0" data-entity="${esc(status || "")}" title="${esc(label)}" aria-label="${esc(label)}"><span class="dot"></span><span class="chip-text">${esc(label)}</span></span>
+          </div>
           <div class="sub">${esc(sub)}</div>
         </div>
-        <span class="chip clickable ${PHASE_CLASS[phase]}" role="button" tabindex="0" data-entity="${esc(status || "")}" title="${esc(label)}" aria-label="${esc(label)}"><span class="dot"></span><span class="chip-text">${esc(label)}</span></span>
         ${this._zoomButton()}
       </div>`;
   }
