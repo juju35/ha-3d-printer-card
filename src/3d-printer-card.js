@@ -2254,13 +2254,13 @@ const workshopSvg = (n) => {
 const bannerPrinterSvg = (phase, pct, filament) =>
   printerSvg(phase, pct, filament).replace('<svg class="printer" viewBox="0 0 80 80"', '<svg class="printer" x="126.4" y="8" width="69.6" height="72" viewBox="5.4 3.4 69.2 71.6"');
 
-// Night picture: forced by illustration_theme, else the sun below the horizon or Home Assistant's dark mode
-// (the dark theme shows the night picture even while the sun is up; an unavailable sun leaves the dark mode alone).
+// Night picture: forced by illustration_theme, else Home Assistant's dark mode alone (a light theme keeps the day
+// picture after sunset).
 const isNight = (hass, config) => {
   const theme = config.illustration_theme;
   if (theme === "night") return true;
   if (theme === "day") return false;
-  return hass?.states?.["sun.sun"]?.state === "below_horizon" || !!hass?.themes?.darkMode;
+  return !!hass?.themes?.darkMode;
 };
 
 // ---------------------------------------------------------------------------
@@ -2707,7 +2707,7 @@ class PrinterBase extends HTMLElement {
     const ids = [...Object.values(dev.e), ...dev.trays, ...dev.spools, ...dev.ams.flatMap((u) => [...Object.values(u.e), ...u.trays])];
     const phase = phaseOf(dev, h.states);
     const minute = JOB_PHASES.has(phase) || phase === "finished" ? Math.floor(Date.now() / 60000) : 0;
-    return [h.entities, h.devices, h.language, h.locale, h.formatEntityState, h.themes?.darkMode, h.states["sun.sun"], minute, ...ids.map((id) => h.states[id])];
+    return [h.entities, h.devices, h.language, h.locale, h.formatEntityState, h.themes?.darkMode, minute, ...ids.map((id) => h.states[id])];
   }
 
   connectedCallback() {

@@ -37,7 +37,7 @@ The cards work on top of the integrations you already use — [Bambu Lab](https:
 
 - Two cards: a full **3D Printer Card** (`custom:printer-3d-card`) and a compact **3D Printer Mini Card** (`custom:printer-3d-mini-card`)
 - Bambu Lab, OctoPrint, Moonraker (Klipper) and PrusaLink printers, several printers supported, the Bambu Lab AMS units merged with their printer
-- Illustrated header (90 px, full and mini card): the drawn printer on a workshop bench, animated by its state, the name and the status (with the progress while printing) on the wall, a bench strip at the bottom; night picture after sunset (`sun.sun`) or with the dark theme (even while the sun is up), or forced with `illustration_theme`; `illustration: false` brings back the classic header
+- Illustrated header (90 px, full and mini card): the drawn printer on a workshop bench, animated by its state, the name and the status (with the progress while printing) on the wall, a bench strip at the bottom; night picture with a dark Home Assistant theme, day picture with a light one, or forced with `illustration_theme`; `illustration: false` brings back the classic header
 - Progress ring around a drawn printer, animated by its state (see [Animations](#animations)): the toolhead sweeps across and the spool turns while printing, heat rises while preparing, the toolhead parks when paused, the part sparkles when finished, the alert badge blinks on an error
 - Header icon of a 3D printer with the integration's logo as a badge (opens its site), tinted with the printer state: blue printing or preparing, orange paused, green finished, red on an error or offline, grey idle; buttons in the integration's color
 - Remaining time and estimated end (computed from each other when the integration gives only one), current / total layers, the Bambu Lab stage (heating, levelling, filament change…) and its HMS error messages
@@ -162,7 +162,7 @@ language: fr
 | `device` | both | First printer | Printer to display: its name (as shown in Home Assistant) or its device id (set by the visual editor) |
 | `title` | both | Device name | Card title |
 | `illustration` | both | `true` | Illustrated header: the printer on its workshop bench, drawn in its state, with the status pill on the title's line. `false`: classic header with the status chip |
-| `illustration_theme` | both | `auto` | Picture of the illustrated header: `auto` (night when the sun is below the horizon or with the dark theme, even while the sun is up), `day` or `night` |
+| `illustration_theme` | both | `auto` | Picture of the illustrated header: `auto` (follows the Home Assistant theme: night with a dark theme, day with a light theme), `day` or `night` |
 | `show_title` | both | `true` | Show the title in the header (e.g. `false` under a section heading of your own) |
 | `show_subtitle` | both | `true` | Show the subtitle under the title: the file being printed, else the printer model (compact mini card with the illustration: the progress) |
 | `show_controls` | both | `true` | Pause / resume / stop buttons while a print is under way, each asking for a confirmation |

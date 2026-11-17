@@ -430,15 +430,16 @@ test("the illustrated header: printer on its bench, status and progress, brand b
   assert.match(html(zoomed), /<div class="sub"[^>]*>Desk organizer<\/div>/);
 });
 
-test("the illustration's night: illustration_theme, else the sun, else the dark mode", () => {
+test("the illustration's night: illustration_theme, else the dark mode alone", () => {
   const sun = (state) => ({ states: { "sun.sun": { state } }, themes: { darkMode: false } });
-  assert.equal(pc.isNight(sun("below_horizon"), {}), true);
+  assert.equal(pc.isNight(sun("below_horizon"), {}), false, "light theme after sunset: day");
   assert.equal(pc.isNight(sun("above_horizon"), {}), false);
   assert.equal(pc.isNight(sun("below_horizon"), { illustration_theme: "day" }), false);
   assert.equal(pc.isNight(sun("above_horizon"), { illustration_theme: "night" }), true);
   assert.equal(pc.isNight({ states: {}, themes: { darkMode: true } }, {}), true);
   const sunDark = (state) => ({ states: { "sun.sun": { state } }, themes: { darkMode: true } });
   assert.equal(pc.isNight(sunDark("above_horizon"), {}), true, "dark theme while the sun is up: night");
+  assert.equal(pc.isNight(sunDark("below_horizon"), {}), true);
   assert.equal(pc.isNight(sun("above_horizon"), { illustration_theme: "auto" }), false, "light theme while the sun is up: day");
   assert.equal(pc.isNight(sunDark("above_horizon"), { illustration_theme: "day" }), false);
   assert.equal(pc.isNight(sun("above_horizon"), { illustration_theme: "night" }), true);
