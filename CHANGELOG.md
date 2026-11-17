@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 - 2026-11-17
+
+### Features
+- **Illustrated header**: the full and the mini card open on a 90 px banner. The card's own drawn printer stands on a workshop bench at the right (pegboard, filament spools, window), with its animations of the state: the toolhead sweeps and the spool turns while printing, heat rises while preparing, the toolhead parks when paused, the part sparkles when finished. The name and the status (with the progress while a job runs) sit on the wall at the left, next to the round printer icon and its integration logo badge; a 10 px bench strip runs edge to edge at the bottom.
+- **Status color on the icon**: the round icon always tells the state, day and night: blue printing or preparing, amber paused, green finished, red on an error or offline, grey idle.
+- **Night picture**: after sunset (`sun.sun`), else in dark mode; `illustration_theme: day | night` forces one. `illustration: false` brings back the classic header. Both options are in the visual editors, translated in every language. Animations stop with `prefers-reduced-motion`.
+- With the illustration, the name of the file being printed moves from the header to the progress lines of the full card.
+
 ## 1.0.3 - 2026-11-14
 
 ### Fixes

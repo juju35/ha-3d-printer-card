@@ -400,3 +400,29 @@ test("the drawn printer's part grows with the progress", () => {
   assert.ok(h(10) < h(50) && h(50) < h(100));
   assert.doesNotMatch(pc.printerSvg("idle", 0, "#fff"), /class="part"/);
 });
+
+test("the illustrated header: printer on its bench, status and progress, brand badge, classic header with illustration: false", () => {
+  const h = html(newCard());
+  assert.match(h, /class="banner ph-printing anim-printing"/);
+  assert.match(h, /<svg class="printer" x="126.4" y="8"/);
+  assert.match(h, /class="ground"/);
+  assert.match(h, /Printing · 47 %/);
+  assert.match(h, /class="logo-link type-icon active"/);
+  assert.match(h, /class="logo"/);
+  assert.doesNotMatch(h, /class="header"/);
+  assert.match(html(newCard({}, makeHass({ "sensor.x1_carbon_print_status": { state: "idle" } }))), /type-icon idle"/);
+  const classic = html(newCard({ illustration: false }));
+  assert.match(classic, /class="header"/);
+  assert.doesNotMatch(classic, /class="banner/);
+  assert.match(html(newCard({}, makeHass(), pc.PrinterMiniCard)), /class="banner ph-printing/);
+});
+
+test("the illustration's night: illustration_theme, else the sun, else the dark mode", () => {
+  const sun = (state) => ({ states: { "sun.sun": { state } }, themes: { darkMode: false } });
+  assert.equal(pc.isNight(sun("below_horizon"), {}), true);
+  assert.equal(pc.isNight(sun("above_horizon"), {}), false);
+  assert.equal(pc.isNight(sun("below_horizon"), { illustration_theme: "day" }), false);
+  assert.equal(pc.isNight(sun("above_horizon"), { illustration_theme: "night" }), true);
+  assert.equal(pc.isNight({ states: {}, themes: { darkMode: true } }, {}), true);
+  assert.match(html(newCard({ illustration_theme: "night" })), /class="banner night /);
+});

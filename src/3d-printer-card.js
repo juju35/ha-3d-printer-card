@@ -18,6 +18,7 @@ const IMG_LOGO_PRUSALINK = "__IMG_LOGO_PRUSALINK__";
 
 // Material Design Icons (https://pictogrammers.com/library/mdi/), Apache 2.0.
 const ICONS = {
+  printer_3d: "M19 6v14H5V6h2v12h10V6M3 2h18v4H3V2m7 8h4v6h-4v-6z",
   printer: "M19,6A1,1 0 0,0 20,5A1,1 0 0,0 19,4A1,1 0 0,0 18,5A1,1 0 0,0 19,6M19,2A3,3 0 0,1 22,5V11H18V7H6V11H2V5A3,3 0 0,1 5,2H19M18,18.25C18,18.63 17.79,18.96 17.47,19.13L12.57,21.82C12.4,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L6.53,19.13C6.21,18.96 6,18.63 6,18.25V13C6,12.62 6.21,12.29 6.53,12.12L11.43,9.68C11.59,9.56 11.79,9.5 12,9.5C12.21,9.5 12.4,9.56 12.57,9.68L17.47,12.12C17.79,12.29 18,12.62 18,13V18.25M12,11.65L9.04,13L12,14.6L14.96,13L12,11.65M8,17.66L11,19.29V16.33L8,14.71V17.66M16,17.66V14.71L13,16.33V19.29L16,17.66Z",
   nozzle: "M7,2H17V8H19V13H16.5L13,17H11L7.5,13H5V8H7V2M10,22H2V20H10A1,1 0 0,0 11,19V18H13V19A3,3 0 0,1 10,22Z",
   nozzle_heat: "M4 2H14V7H16V13H13.5L10 17H8L4.5 13H2V7H4V2M23 14.5L21.6 16.7L23 18.9L21 22L19.2 21.1L20.7 18.9L19.2 16.7L21.2 13.6L23 14.5M18.7 14.5L17.2 16.7L18.7 18.9L16.7 22L14.9 21.1L16.3 18.9L14.9 16.7L16.9 13.6L18.7 14.5",
@@ -304,6 +305,11 @@ const STRINGS = {
     light_entity: "Light entity (optional)",
     zoom: "Detail button",
     zoom_helper: "Switches the mini card to the full card's content and back",
+    illustration: "Show the illustration",
+    illustration_theme: "Illustration theme",
+    theme_auto: "Automatic (sun, dark mode)",
+    theme_day: "Day",
+    theme_night: "Night",
     language: "Language",
     lang_auto: "Automatic (Home Assistant)",
   },
@@ -377,6 +383,11 @@ const STRINGS = {
     light_entity: "Entité lumière (facultatif)",
     zoom: "Bouton de détail",
     zoom_helper: "Bascule la mini-carte vers le contenu de la carte complète, et retour",
+    illustration: "Afficher l'illustration",
+    illustration_theme: "Thème de l'illustration",
+    theme_auto: "Automatique (soleil, mode sombre)",
+    theme_day: "Jour",
+    theme_night: "Nuit",
     language: "Langue",
     lang_auto: "Automatique (Home Assistant)",
   },
@@ -450,6 +461,11 @@ const STRINGS = {
     light_entity: "Licht-Entität (optional)",
     zoom: "Detail-Taste",
     zoom_helper: "Schaltet die Mini-Karte auf den Inhalt der vollständigen Karte um und zurück",
+    illustration: "Illustration anzeigen",
+    illustration_theme: "Thema der Illustration",
+    theme_auto: "Automatisch (Sonne, dunkler Modus)",
+    theme_day: "Tag",
+    theme_night: "Nacht",
     language: "Sprache",
     lang_auto: "Automatisch (Home Assistant)",
   },
@@ -523,6 +539,11 @@ const STRINGS = {
     light_entity: "Entidad de luz (opcional)",
     zoom: "Botón de detalle",
     zoom_helper: "Cambia la mini tarjeta al contenido de la tarjeta completa y viceversa",
+    illustration: "Mostrar la ilustración",
+    illustration_theme: "Tema de la ilustración",
+    theme_auto: "Automático (sol, modo oscuro)",
+    theme_day: "Día",
+    theme_night: "Noche",
     language: "Idioma",
     lang_auto: "Automático (Home Assistant)",
   },
@@ -596,6 +617,11 @@ const STRINGS = {
     light_entity: "Ентитет светла (опционо)",
     zoom: "Дугме за детаље",
     zoom_helper: "Пребацује мини картицу на садржај пуне картице и назад",
+    illustration: "Прикажи илустрацију",
+    illustration_theme: "Тема илустрације",
+    theme_auto: "Аутоматски (сунце, тамни режим)",
+    theme_day: "Дан",
+    theme_night: "Ноћ",
     language: "Језик",
     lang_auto: "Аутоматски (Home Assistant)",
   },
@@ -669,6 +695,11 @@ const STRINGS = {
     light_entity: "Entitet svetla (opciono)",
     zoom: "Dugme za detalje",
     zoom_helper: "Prebacuje mini karticu na sadržaj pune kartice i nazad",
+    illustration: "Prikaži ilustraciju",
+    illustration_theme: "Tema ilustracije",
+    theme_auto: "Automatski (sunce, tamni režim)",
+    theme_day: "Dan",
+    theme_night: "Noć",
     language: "Jezik",
     lang_auto: "Automatski (Home Assistant)",
   },
@@ -742,6 +773,11 @@ const STRINGS = {
     light_entity: "Entità luce (facoltativa)",
     zoom: "Pulsante dettagli",
     zoom_helper: "Passa la mini scheda al contenuto della scheda completa e viceversa",
+    illustration: "Mostra l'illustrazione",
+    illustration_theme: "Tema dell'illustrazione",
+    theme_auto: "Automatico (sole, modalità scura)",
+    theme_day: "Giorno",
+    theme_night: "Notte",
     language: "Lingua",
     lang_auto: "Automatica (Home Assistant)",
   },
@@ -815,6 +851,11 @@ const STRINGS = {
     light_entity: "Licht-entiteit (optioneel)",
     zoom: "Detailknop",
     zoom_helper: "Schakelt de minikaart naar de inhoud van de volledige kaart en terug",
+    illustration: "Illustratie tonen",
+    illustration_theme: "Thema van de illustratie",
+    theme_auto: "Automatisch (zon, donkere modus)",
+    theme_day: "Dag",
+    theme_night: "Nacht",
     language: "Taal",
     lang_auto: "Automatisch (Home Assistant)",
   },
@@ -888,6 +929,11 @@ const STRINGS = {
     light_entity: "Entidade de luz (opcional)",
     zoom: "Botão de detalhe",
     zoom_helper: "Alterna o mini cartão para o conteúdo do cartão completo e vice-versa",
+    illustration: "Mostrar a ilustração",
+    illustration_theme: "Tema da ilustração",
+    theme_auto: "Automático (sol, modo escuro)",
+    theme_day: "Dia",
+    theme_night: "Noite",
     language: "Idioma",
     lang_auto: "Automático (Home Assistant)",
   },
@@ -961,6 +1007,11 @@ const STRINGS = {
     light_entity: "Encja światła (opcjonalna)",
     zoom: "Przycisk szczegółów",
     zoom_helper: "Przełącza mini kartę na zawartość pełnej karty i z powrotem",
+    illustration: "Pokaż ilustrację",
+    illustration_theme: "Motyw ilustracji",
+    theme_auto: "Automatyczny (słońce, tryb ciemny)",
+    theme_day: "Dzień",
+    theme_night: "Noc",
     language: "Język",
     lang_auto: "Automatycznie (Home Assistant)",
   },
@@ -1034,6 +1085,11 @@ const STRINGS = {
     light_entity: "Entitate lumină (opțional)",
     zoom: "Buton de detalii",
     zoom_helper: "Comută mini cardul la conținutul cardului complet și înapoi",
+    illustration: "Afișează ilustrația",
+    illustration_theme: "Tema ilustrației",
+    theme_auto: "Automat (soare, mod întunecat)",
+    theme_day: "Zi",
+    theme_night: "Noapte",
     language: "Limbă",
     lang_auto: "Automat (Home Assistant)",
   },
@@ -1107,6 +1163,11 @@ const STRINGS = {
     light_entity: "Lys-entitet (valgfri)",
     zoom: "Detaljeknap",
     zoom_helper: "Skifter minikortet til det fulde korts indhold og tilbage",
+    illustration: "Vis illustrationen",
+    illustration_theme: "Illustrationens tema",
+    theme_auto: "Automatisk (sol, mørk tilstand)",
+    theme_day: "Dag",
+    theme_night: "Nat",
     language: "Sprog",
     lang_auto: "Automatisk (Home Assistant)",
   },
@@ -1180,6 +1241,11 @@ const STRINGS = {
     light_entity: "Ljusentitet (valfri)",
     zoom: "Detaljknapp",
     zoom_helper: "Växlar minikortet till det fullständiga kortets innehåll och tillbaka",
+    illustration: "Visa illustrationen",
+    illustration_theme: "Illustrationens tema",
+    theme_auto: "Automatiskt (sol, mörkt läge)",
+    theme_day: "Dag",
+    theme_night: "Natt",
     language: "Språk",
     lang_auto: "Automatiskt (Home Assistant)",
   },
@@ -1253,6 +1319,11 @@ const STRINGS = {
     light_entity: "Обект светлина (по избор)",
     zoom: "Бутон за подробности",
     zoom_helper: "Превключва мини картата към съдържанието на пълната карта и обратно",
+    illustration: "Покажи илюстрацията",
+    illustration_theme: "Тема на илюстрацията",
+    theme_auto: "Автоматично (слънце, тъмен режим)",
+    theme_day: "Ден",
+    theme_night: "Нощ",
     language: "Език",
     lang_auto: "Автоматично (Home Assistant)",
   },
@@ -1326,6 +1397,11 @@ const STRINGS = {
     light_entity: "Объект света (необязательно)",
     zoom: "Кнопка подробностей",
     zoom_helper: "Переключает мини-карточку на содержимое полной карточки и обратно",
+    illustration: "Показывать иллюстрацию",
+    illustration_theme: "Тема иллюстрации",
+    theme_auto: "Автоматически (солнце, тёмный режим)",
+    theme_day: "День",
+    theme_night: "Ночь",
     language: "Язык",
     lang_auto: "Автоматически (Home Assistant)",
   },
@@ -1399,6 +1475,11 @@ const STRINGS = {
     light_entity: "Сутність світла (необов'язково)",
     zoom: "Кнопка подробиць",
     zoom_helper: "Перемикає міні-картку на вміст повної картки і назад",
+    illustration: "Показувати ілюстрацію",
+    illustration_theme: "Тема ілюстрації",
+    theme_auto: "Автоматично (сонце, темний режим)",
+    theme_day: "День",
+    theme_night: "Ніч",
     language: "Мова",
     lang_auto: "Автоматично (Home Assistant)",
   },
@@ -1472,6 +1553,11 @@ const STRINGS = {
     light_entity: "Világítás entitás (nem kötelező)",
     zoom: "Részletek gomb",
     zoom_helper: "A mini kártyát a teljes kártya tartalmára váltja, és vissza",
+    illustration: "Illusztráció megjelenítése",
+    illustration_theme: "Az illusztráció témája",
+    theme_auto: "Automatikus (nap, sötét mód)",
+    theme_day: "Nappal",
+    theme_night: "Éjszaka",
     language: "Nyelv",
     lang_auto: "Automatikus (Home Assistant)",
   },
@@ -1545,6 +1631,11 @@ const STRINGS = {
     light_entity: "Entita svetla (voliteľná)",
     zoom: "Tlačidlo podrobností",
     zoom_helper: "Prepne mini kartu na obsah úplnej karty a späť",
+    illustration: "Zobraziť ilustráciu",
+    illustration_theme: "Téma ilustrácie",
+    theme_auto: "Automaticky (slnko, tmavý režim)",
+    theme_day: "Deň",
+    theme_night: "Noc",
     language: "Jazyk",
     lang_auto: "Automaticky (Home Assistant)",
   },
@@ -1618,6 +1709,11 @@ const STRINGS = {
     light_entity: "Entita světla (volitelná)",
     zoom: "Tlačítko podrobností",
     zoom_helper: "Přepne mini kartu na obsah úplné karty a zpět",
+    illustration: "Zobrazit ilustraci",
+    illustration_theme: "Motiv ilustrace",
+    theme_auto: "Automaticky (slunce, tmavý režim)",
+    theme_day: "Den",
+    theme_night: "Noc",
     language: "Jazyk",
     lang_auto: "Automaticky (Home Assistant)",
   },
@@ -1691,6 +1787,11 @@ const STRINGS = {
     light_entity: "Entiteta luči (neobvezno)",
     zoom: "Gumb za podrobnosti",
     zoom_helper: "Preklopi mini kartico na vsebino celotne kartice in nazaj",
+    illustration: "Prikaži ilustracijo",
+    illustration_theme: "Tema ilustracije",
+    theme_auto: "Samodejno (sonce, temni način)",
+    theme_day: "Dan",
+    theme_night: "Noč",
     language: "Jezik",
     lang_auto: "Samodejno (Home Assistant)",
   },
@@ -1764,6 +1865,11 @@ const STRINGS = {
     light_entity: "Gaismas entītija (neobligāti)",
     zoom: "Detaļu poga",
     zoom_helper: "Pārslēdz mini kartīti uz pilnās kartītes saturu un atpakaļ",
+    illustration: "Rādīt ilustrāciju",
+    illustration_theme: "Ilustrācijas motīvs",
+    theme_auto: "Automātiski (saule, tumšais režīms)",
+    theme_day: "Diena",
+    theme_night: "Nakts",
     language: "Valoda",
     lang_auto: "Automātiski (Home Assistant)",
   },
@@ -1837,6 +1943,11 @@ const STRINGS = {
     light_entity: "Οντότητα φωτός (προαιρετική)",
     zoom: "Κουμπί λεπτομερειών",
     zoom_helper: "Εναλλάσσει τη μίνι κάρτα στο περιεχόμενο της πλήρους κάρτας και πίσω",
+    illustration: "Εμφάνιση της εικονογράφησης",
+    illustration_theme: "Θέμα της εικονογράφησης",
+    theme_auto: "Αυτόματο (ήλιος, σκούρα λειτουργία)",
+    theme_day: "Μέρα",
+    theme_night: "Νύχτα",
     language: "Γλώσσα",
     lang_auto: "Αυτόματα (Home Assistant)",
   },
@@ -2118,6 +2229,42 @@ const ringSvg = (pct) => {
 };
 
 // ---------------------------------------------------------------------------
+// Header illustration: the printer on a workshop bench, at the right of a 90 px banner
+// ---------------------------------------------------------------------------
+
+// Window of the workshop: blue sky and sun by day, night sky and moon at night.
+const workshopWindow = (x, y, w, h, n) =>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="1.5" fill="${n ? "#1b2f52" : "#bfe0f7"}" stroke="${n ? "#4a5568" : "#fff"}" stroke-width="1.6"/>${
+    n ? `<circle cx="${x + w * 0.7}" cy="${y + h * 0.3}" r="2.4" fill="#f3eed2"/>` : `<circle cx="${x + w * 0.7}" cy="${y + h * 0.35}" r="3" fill="#ffd65a"/>`
+  }<line x1="${x + w / 2}" y1="${y}" x2="${x + w / 2}" y2="${y + h}" stroke="${n ? "#4a5568" : "#fff"}" stroke-width="1.2"/>`;
+
+// The workshop behind the printer, in a 200 × 80 picture: pegboard with its tools, a shelf of filament spools and
+// the window. No id: several cards on a page cannot clash.
+const workshopSvg = (n) => {
+  const holes = Array.from({ length: 12 }, (_, i) => `<circle cx="${16 + (i % 6) * 11}" cy="${18 + Math.floor(i / 6) * 14}" r="1.2"/>`).join("");
+  return `<rect width="200" height="80" fill="${n ? "#2a2a33" : "#f1ece4"}"/><rect x="10" y="10" width="70" height="40" fill="${n ? "#33333f" : "#e2d7c6"}"/><g fill="${
+    n ? "#555" : "#9c8b74"
+  }">${holes}</g><rect x="20" y="22" width="3" height="18" fill="#c0603a"/><rect x="40" y="20" width="12" height="4" fill="#5c6a7a"/><circle cx="110" cy="28" r="6" fill="#e8a33d"/><circle cx="126" cy="28" r="6" fill="#43a3d8"/><circle cx="142" cy="28" r="6" fill="#7ac143"/><rect x="100" y="34" width="52" height="2" fill="${
+    n ? "#555" : "#9c8b74"
+  }"/>${workshopWindow(164, 8, 28, 24, n)}`;
+};
+
+// The printer of the card (printerSvg, same drawing and animations) standing on the bench: its picture cropped to
+// the drawing (foot on the bottom edge), 72 high, its right side at x 196 of the scene.
+const bannerPrinterSvg = (phase, pct, filament) =>
+  printerSvg(phase, pct, filament).replace('<svg class="printer" viewBox="0 0 80 80"', '<svg class="printer" x="126.4" y="8" width="69.6" height="72" viewBox="5.4 3.4 69.2 71.6"');
+
+// Night picture: forced by illustration_theme, else the sun below the horizon, else Home Assistant's dark mode.
+const isNight = (hass, config) => {
+  const theme = config.illustration_theme;
+  if (theme === "night") return true;
+  if (theme === "day") return false;
+  const sun = hass?.states?.["sun.sun"];
+  if (sun && sun.state !== "unavailable" && sun.state !== "unknown") return sun.state === "below_horizon";
+  return !!hass?.themes?.darkMode;
+};
+
+// ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
 
@@ -2194,7 +2341,8 @@ const BASE_STYLE = `
   .ring-svg .fx { stroke: var(--c, var(--pc-accent)); stroke-linecap: round; stroke-dasharray: 0 100; opacity: 0; transform-box: view-box; transform-origin: 50px 50px; }
   .ring .pct-in { position: relative; font-size: 15px; font-weight: 500; }
   .ring .pct-in small { font-size: 10px; margin-left: 1px; color: var(--secondary-text-color); }
-  .printer { width: 64%; height: 64%; overflow: visible; filter: drop-shadow(0 3px 6px rgba(0,0,0,.18)); }
+  .printer { overflow: visible; filter: drop-shadow(0 3px 6px rgba(0,0,0,.18)); }
+  .ring .printer { width: 64%; height: 64%; }
   .printer .frame { fill: var(--pc-frame); stroke: var(--pc-frame-edge); stroke-width: 1; }
   .printer .glass { fill: var(--pc-glass); }
   .printer .rail, .printer .bed, .printer .foot { fill: var(--pc-metal); }
@@ -2336,6 +2484,38 @@ const FULL_STYLE = `
     .ring { width: 76px; height: 76px; }
     .big { font-size: 22px; }
   }
+`;
+
+// The illustrated header (the full and the mini card): the title on the workshop's wall at the left, the printer on
+// its bench at the right, a 10 px bench strip under the whole banner. Day and night colors.
+const BANNER_STYLE = `
+  .banner { position: relative; overflow: hidden; height: 90px; --pc-ground: 10px; --pc-scene-w: min(200px, 66%);
+            background: #f1ece4; color: #0d2a45; --pc-sky-muted: #3b5b78;
+            /* The printer keeps its light colors on the banner, day and night. */
+            --pc-frame: #e6e9ee; --pc-frame-edge: #c9ced6; --pc-glass: #2a3038; --pc-metal: #8b95a1; --pc-metal-light: #c7ccd3; }
+  .banner.night { background: #2a2a33; color: #fff; --pc-sky-muted: rgba(255,255,255,.78); }
+  .banner .scene { position: absolute; right: 0; bottom: var(--pc-ground); width: var(--pc-scene-w); height: calc(100% - var(--pc-ground)); }
+  .banner .ground { position: absolute; left: 0; right: 0; bottom: 0; height: var(--pc-ground);
+                    background: repeating-linear-gradient(90deg, #c9a36f 0 60px, #b8925f 60px 62px); box-shadow: inset 0 2px 0 #dcb985; }
+  .banner.night .ground { background: #4a3a2c; }
+  .htext { position: absolute; z-index: 1; left: 0; top: 0; bottom: var(--pc-ground); right: var(--pc-scene-w); display: flex; align-items: center;
+           gap: 10px; padding: 8px 8px 8px 14px; min-width: 0; box-sizing: border-box; }
+  .htext .titles { flex: 1 1 auto; min-width: 0; }
+  .htext .sub { font-size: 13px; color: var(--pc-sky-muted); }
+  /* The round icon: its color always tells the status (running: state color, idle: grey, warning: amber, error: red). */
+  .banner .type-icon { background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc-tint) 30%, transparent); }
+  .banner.night .type-icon { background: rgba(255,255,255,.12); }
+  .banner .type-icon .icon.type, .banner .type-icon:is(.ok, .warn, .crit, .idle, .active) .icon.type { fill: color-mix(in srgb, var(--pc-tint) 82%, #0d2a45); }
+  .banner.night .type-icon .icon.type, .banner.night .type-icon:is(.ok, .warn, .crit, .idle, .active) .icon.type { fill: color-mix(in srgb, var(--pc-tint) 80%, #fff); }
+  .banner .type-icon .logo { padding: 2px; box-shadow: 0 0 0 1px rgba(13,42,69,.16), 0 1px 3px rgba(13,42,69,.18); }
+  .banner .zoom { position: absolute; z-index: 2; top: 6px; right: 6px; margin: 0; color: #0d2a45; background: rgba(255,255,255,.55); }
+  .banner.night .zoom { color: #fff; background: rgba(10,20,40,.45); }
+  .banner .zoom:hover { color: #0d2a45; background: rgba(255,255,255,.8); }
+  .banner.night .zoom:hover { color: #fff; background: rgba(10,20,40,.7); }
+  /* Narrow card: the picture keeps its height and loses its left part, the printer stays. */
+  @container (max-width: 300px) { .banner { --pc-scene-w: 84px; } .htext { padding-left: 10px; gap: 8px; } }
+  /* Very narrow card (mini card on a phone): the wall alone, the name and the status keep the room. */
+  @container (max-width: 220px) { .banner { --pc-scene-w: 0px; } .banner .scene { display: none; } .htext { padding-right: 36px; } }
 `;
 
 const MINI_STYLE = `
@@ -2490,7 +2670,7 @@ class PrinterBase extends HTMLElement {
     const ids = [...Object.values(dev.e), ...dev.trays, ...dev.spools, ...dev.ams.flatMap((u) => [...Object.values(u.e), ...u.trays])];
     const phase = phaseOf(dev, h.states);
     const minute = JOB_PHASES.has(phase) || phase === "finished" ? Math.floor(Date.now() / 60000) : 0;
-    return [h.entities, h.devices, h.language, h.locale, h.formatEntityState, h.themes?.darkMode, minute, ...ids.map((id) => h.states[id])];
+    return [h.entities, h.devices, h.language, h.locale, h.formatEntityState, h.themes?.darkMode, h.states["sun.sun"], minute, ...ids.map((id) => h.states[id])];
   }
 
   connectedCallback() {
@@ -2753,6 +2933,7 @@ class PrinterBase extends HTMLElement {
     const cls = this._iconState(dev, phase);
     const label = this._t(`s_${phase}`);
     const status = this._s(dev.e.status) ? dev.e.status : dev.e.printer_state;
+    if (this._config.illustration !== false) return this._banner(dev, phase, { b, cls, label, status });
     const sub = this._fileName(dev) && (JOB_PHASES.has(phase) || phase === "finished") ? this._fileName(dev) : dev.model || b.name;
     return `
       <div class="header">
@@ -2766,6 +2947,32 @@ class PrinterBase extends HTMLElement {
       </div>`;
   }
 
+  // The illustrated header: the brand's icon, the name and the status (with the progress while a job runs) on the
+  // workshop's wall, the card's printer on its bench, drawn in the phase (same animations as in the ring).
+  _banner(dev, phase, { b, cls, label, status }) {
+    const pct = this._progress(dev, phase);
+    const sub = JOB_PHASES.has(phase) && pct !== null ? `${label} · ${pct} %` : label;
+    const night = isNight(this._hass, this._config);
+    const file = JOB_PHASES.has(phase) || phase === "finished" ? this._fileName(dev) : "";
+    return `
+      <div class="banner${night ? " night" : ""} ph-${phase} ${RING_ANIM[phase] || ""}">
+        <svg class="scene" viewBox="0 0 200 80" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false">${workshopSvg(night)}${bannerPrinterSvg(
+          phase,
+          pct,
+          this._filament(dev),
+        )}</svg>
+        <div class="ground"></div>
+        <div class="htext">
+          <a class="logo-link type-icon ${cls}" href="${b.site}" target="_blank" rel="noopener noreferrer" title="${esc(b.name)}">${imgTag(b.logo, `class="logo" alt="${esc(b.name)}"`)}${svgIcon(ICONS.printer_3d, "type")}</a>
+          <div class="titles">
+            <div class="name">${esc(this._config.title || dev.name)}</div>
+            <div class="sub clickable" role="button" tabindex="0" data-entity="${esc(status || "")}"${file ? ` title="${esc(file)}"` : ""}>${esc(sub)}</div>
+          </div>
+        </div>
+        ${this._zoomButton()}
+      </div>`;
+  }
+
   // Header icon color: the phase, red when the printer reports an error.
   _iconState(dev, phase) {
     return this._error(dev, phase) ? "crit" : PHASE_CLASS[phase];
@@ -2773,6 +2980,11 @@ class PrinterBase extends HTMLElement {
 
   _zoomButton() {
     return "";
+  }
+
+  // The illustration's styles, only when it is shown.
+  _bannerStyle() {
+    return this._config.illustration === false ? "" : BANNER_STYLE;
   }
 
   _toggleZoom() {}
@@ -2884,7 +3096,7 @@ class PrinterCard extends PrinterBase {
     if (c.show_ams !== false) parts.push(this._ams(dev));
     if (c.show_job !== false) parts.push(this._job(dev, phase));
     if (c.show_camera !== false) parts.push(this._camera(dev));
-    return `<style>${BASE_STYLE}${FULL_STYLE}${this._accentStyle(dev)}</style>
+    return `<style>${BASE_STYLE}${FULL_STYLE}${this._bannerStyle()}${this._accentStyle(dev)}</style>
       <ha-card>
         ${this._header(dev, phase)}
         <div class="content">${parts.filter(Boolean).join("")}</div>
@@ -2901,6 +3113,9 @@ class PrinterCard extends PrinterBase {
     const lines = [];
     const err = this._error(dev, phase);
     if (err) lines.push(`<div class="alert-line">${svgIcon(ICONS.alert)}<span>${esc(err)}</span></div>`);
+    // With the illustration, the header shows the status: the name of the print moves here.
+    const file = this._config.illustration !== false && (job || phase === "finished") ? this._fileName(dev) : "";
+    if (file) lines.push(`<div class="line">${svgIcon(ICONS.file)}<span>${esc(file)}</span></div>`);
     lines.push(this._timeLine(dev, phase));
     const layers = job || phase === "finished" ? this._layers(dev) : "";
     if (layers) lines.push(`<div class="line clickable" role="button" tabindex="0" data-entity="${esc(dev.e.layer)}">${svgIcon(ICONS.layers)}<span>${esc(layers)}</span></div>`);
@@ -3104,7 +3319,7 @@ class PrinterMiniCard extends PrinterCard {
     if (layers) lines.push(`<div class="line">${svgIcon(ICONS.layers)}<span>${esc(layers)}</span></div>`);
     const buttons = this._config.show_controls !== false ? this._commands(dev, phase).map((cmd) => this._cmdButton(dev, cmd, true)) : [];
     const light = this._lightButton(dev, true);
-    return `<style>${BASE_STYLE}${MINI_STYLE}${this._accentStyle(dev)}</style>
+    return `<style>${BASE_STYLE}${MINI_STYLE}${this._bannerStyle()}${this._accentStyle(dev)}</style>
       <ha-card>
         ${this._header(dev, phase)}
         <div class="content">
@@ -3190,6 +3405,7 @@ class PrinterEditorBase extends HTMLElement {
 class PrinterCardEditor extends PrinterEditorBase {
   static get toggles() {
     return [
+      ["illustration", true],
       ["show_title", true],
       ["show_subtitle", true],
       ["show_controls", true],
@@ -3203,11 +3419,12 @@ class PrinterCardEditor extends PrinterEditorBase {
   }
 
   static get defaults() {
-    return { collapsed: DEFAULT_COLLAPSED };
+    return { collapsed: DEFAULT_COLLAPSED, illustration_theme: "auto" };
   }
 
   static extraFields(tr) {
     return [
+      { name: "illustration_theme", selector: { select: { mode: "dropdown", options: ["auto", "day", "night"].map((value) => ({ value, label: tr(`theme_${value}`) })) } } },
       {
         name: "collapsed",
         selector: { select: { multiple: true, mode: "list", options: SECTIONS.map((value) => ({ value, label: tr(value) })) } },
