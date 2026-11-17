@@ -2273,7 +2273,7 @@ const BASE_STYLE = `
           --pc-crit: var(--error-color, #db4437); --pc-idle: var(--disabled-text-color, #9e9e9e); --pc-active: var(--info-color, #039be5);
           /* Text in a state or brand color is mixed with the text color so that it reads at 4.5:1 at least. */
           --pc-accent-text: color-mix(in srgb, var(--pc-accent) 50%, var(--primary-text-color)); }
-  ha-card { overflow: hidden; container-type: inline-size; }
+  ha-card { overflow: hidden; container: pc-card / inline-size; }
   /* Natural width in a parent that sizes to its content, without a minimum (see ha-vacuum-card). */
   :host { display: block; min-width: 0; --pc-natural-width: 380px; }
   :host::before { content: ""; display: grid; grid-template-columns: minmax(0, var(--pc-natural-width)); height: 0; }
@@ -2302,7 +2302,7 @@ const BASE_STYLE = `
                      background: #fff;
                      box-shadow: 0 0 0 1px var(--divider-color, rgba(0,0,0,.12)), 0 0 0 3px var(--card-background-color, #fff); }
   .titles { flex: 1 1 0; min-width: 5ch; font-size: 16px; }
-  :host([hide-title]) .titles > .name, :host([hide-subtitle]) .titles > .sub { display: none; }
+  :host([hide-title]) .titles .name, :host([hide-subtitle]) .titles > .sub { display: none; }
   .name { font-size: 16px; font-weight: 500; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sub { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .warning { padding: 16px; color: color-mix(in srgb, var(--pc-warn) 50%, var(--primary-text-color)); }
@@ -2398,8 +2398,8 @@ const BASE_STYLE = `
   @keyframes pc-draw { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
   /* Narrow card: the status chip keeps only its colored dot (its text stays in title and aria-label). */
   @container (max-width: 230px) {
-    .chip { padding: 4px; flex: none; }
-    .chip-text { display: none; }
+    .header .chip { padding: 4px; flex: none; }
+    .header .chip-text { display: none; }
   }
   @container (max-width: 200px) {
     .header { gap: 6px; }
@@ -2489,7 +2489,7 @@ const FULL_STYLE = `
 // The illustrated header (the full and the mini card): the title on the workshop's wall at the left, the printer on
 // its bench at the right, a 10 px bench strip under the whole banner. Day and night colors.
 const BANNER_STYLE = `
-  .banner { position: relative; overflow: hidden; height: 90px; --pc-ground: 10px; --pc-scene-w: min(200px, 66%);
+  .banner { position: relative; overflow: hidden; height: 90px; --pc-ground: 10px; --pc-scene-w: clamp(112px, 100cqw - 300px, 200px);
             background: #f1ece4; color: #0d2a45; --pc-sky-muted: #3b5b78;
             /* The printer keeps its light colors on the banner, day and night. */
             --pc-frame: #e6e9ee; --pc-frame-edge: #c9ced6; --pc-glass: #2a3038; --pc-metal: #8b95a1; --pc-metal-light: #c7ccd3; }
@@ -2499,21 +2499,36 @@ const BANNER_STYLE = `
                     background: repeating-linear-gradient(90deg, #c9a36f 0 60px, #b8925f 60px 62px); box-shadow: inset 0 2px 0 #dcb985; }
   .banner.night .ground { background: #4a3a2c; }
   .htext { position: absolute; z-index: 1; left: 0; top: 0; bottom: var(--pc-ground); right: var(--pc-scene-w); display: flex; align-items: center;
-           gap: 10px; padding: 8px 8px 8px 14px; min-width: 0; box-sizing: border-box; }
-  .htext .titles { flex: 1 1 auto; min-width: 0; }
+           gap: 10px; padding: 8px 8px 8px 14px; min-width: 0; box-sizing: border-box; container: pc-htext / inline-size; }
+  .htext .titles { flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; }
   .htext .sub { font-size: 13px; color: var(--pc-sky-muted); }
+  /* The status pill right after the name, centred on it; the name ellipsises first (4 characters kept at least). */
+  .htext .tline { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .htext .tline .name { flex: 0 1 auto; min-width: 4ch; }
+  .banner .chip { flex: 0 0 auto; max-width: 51%; background: color-mix(in srgb, var(--c) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c) 45%, #0d2a45); }
+  .banner.night .chip { background: color-mix(in srgb, var(--c) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c) 35%, #ffffff); }
+  .banner .chip .dot { width: 7px; height: 7px; }
   /* The round icon: its color always tells the status (running: state color, idle: grey, warning: amber, error: red). */
   .banner .type-icon { background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc-tint) 30%, transparent); }
   .banner.night .type-icon { background: rgba(255,255,255,.12); }
   .banner .type-icon .icon.type, .banner .type-icon:is(.ok, .warn, .crit, .idle, .active) .icon.type { fill: color-mix(in srgb, var(--pc-tint) 82%, #0d2a45); }
   .banner.night .type-icon .icon.type, .banner.night .type-icon:is(.ok, .warn, .crit, .idle, .active) .icon.type { fill: color-mix(in srgb, var(--pc-tint) 80%, #fff); }
   .banner .type-icon .logo { padding: 2px; box-shadow: 0 0 0 1px rgba(13,42,69,.16), 0 1px 3px rgba(13,42,69,.18); }
-  .banner .zoom { position: absolute; z-index: 2; top: 6px; right: 6px; margin: 0; color: #0d2a45; background: rgba(255,255,255,.55); }
-  .banner.night .zoom { color: #fff; background: rgba(10,20,40,.45); }
-  .banner .zoom:hover { color: #0d2a45; background: rgba(255,255,255,.8); }
-  .banner.night .zoom:hover { color: #fff; background: rgba(10,20,40,.7); }
+  /* The mini card's expand / collapse button: a 24 px glass disc in the banner's top-right corner, the printer kept
+     clear of it. */
+  .banner .zoom { position: absolute; z-index: 2; top: 5px; right: 5px; margin: 0; color: #33506b; background: rgba(255,255,255,.55);
+                  box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); backdrop-filter: blur(4px); }
+  .banner.night .zoom { color: #fff; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+  .banner .zoom:hover { color: #33506b; background: rgba(255,255,255,.75); }
+  .banner.night .zoom:hover { color: #fff; background: rgba(255,255,255,.22); }
+  .banner.has-zoom .scene { right: 30px; }
+  .banner.has-zoom .htext { right: calc(var(--pc-scene-w) + 30px); padding-right: 2px; }
   /* Narrow card: the picture keeps its height and loses its left part, the printer stays. */
   @container (max-width: 300px) { .banner { --pc-scene-w: 84px; } .htext { padding-left: 10px; gap: 8px; } }
+  /* Not enough room beside the name: the pill takes its own line under the subtitle; very narrow: its dot alone. */
+  @container pc-htext (max-width: 200px) { .htext .tline { display: contents; } .htext .chip { grid-row: 3; justify-self: start; max-width: 100%; margin-top: 3px; } }
+  @container pc-card (max-width: 260px) { .htext { gap: 6px; } .banner .type-icon { width: 32px; height: 32px; } .banner .type-icon .icon.type { width: 20px; height: 20px; } }
+  @container pc-card (max-width: 200px) { .htext .chip { padding: 4px; } .htext .chip-text { display: none; } }
   /* Very narrow card (mini card on a phone): the wall alone, the name and the status keep the room. */
   @container (max-width: 220px) { .banner { --pc-scene-w: 0px; } .banner .scene { display: none; } .htext { padding-right: 36px; } }
 `;
@@ -2951,11 +2966,12 @@ class PrinterBase extends HTMLElement {
   // workshop's wall, the card's printer on its bench, drawn in the phase (same animations as in the ring).
   _banner(dev, phase, { b, cls, label, status }) {
     const pct = this._progress(dev, phase);
-    const sub = JOB_PHASES.has(phase) && pct !== null ? `${label} · ${pct} %` : label;
+    const sub = JOB_PHASES.has(phase) && pct !== null ? `${pct} %` : dev.model || b.name;
+    const zoom = this._zoomButton();
     const night = isNight(this._hass, this._config);
     const file = JOB_PHASES.has(phase) || phase === "finished" ? this._fileName(dev) : "";
     return `
-      <div class="banner${night ? " night" : ""} ph-${phase} ${RING_ANIM[phase] || ""}">
+      <div class="banner${night ? " night" : ""}${zoom ? " has-zoom" : ""} ph-${phase} ${RING_ANIM[phase] || ""}">
         <svg class="scene" viewBox="0 0 200 80" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false">${workshopSvg(night)}${bannerPrinterSvg(
           phase,
           pct,
@@ -2965,11 +2981,14 @@ class PrinterBase extends HTMLElement {
         <div class="htext">
           <a class="logo-link type-icon ${cls}" href="${b.site}" target="_blank" rel="noopener noreferrer" title="${esc(b.name)}">${imgTag(b.logo, `class="logo" alt="${esc(b.name)}"`)}${svgIcon(ICONS.printer_3d, "type")}</a>
           <div class="titles">
-            <div class="name">${esc(this._config.title || dev.name)}</div>
-            <div class="sub clickable" role="button" tabindex="0" data-entity="${esc(status || "")}"${file ? ` title="${esc(file)}"` : ""}>${esc(sub)}</div>
+            <div class="tline">
+              <div class="name">${esc(this._config.title || dev.name)}</div>
+              <span class="chip clickable ${cls}" role="button" tabindex="0" data-entity="${esc(status || "")}" title="${esc(label)}" aria-label="${esc(label)}"><span class="dot"></span><span class="chip-text">${esc(label)}</span></span>
+            </div>
+            <div class="sub"${file ? ` title="${esc(file)}"` : ""}>${esc(sub)}</div>
           </div>
         </div>
-        ${this._zoomButton()}
+        ${zoom}
       </div>`;
   }
 

@@ -406,7 +406,10 @@ test("the illustrated header: printer on its bench, status and progress, brand b
   assert.match(h, /class="banner ph-printing anim-printing"/);
   assert.match(h, /<svg class="printer" x="126.4" y="8"/);
   assert.match(h, /class="ground"/);
-  assert.match(h, /Printing · 47 %/);
+  // The status pill on the title's line, in the icon's color; the subtitle keeps the progress, not the status again.
+  assert.match(h, /<div class="tline">\s*<div class="name">X1 Carbon<\/div>\s*<span class="chip clickable active"[^>]*><span class="dot"><\/span><span class="chip-text">Printing<\/span>/);
+  assert.match(h, /<div class="sub"[^>]*>47 %<\/div>/);
+  assert.doesNotMatch(h, /Printing · 47 %/);
   assert.match(h, /class="logo-link type-icon active"/);
   assert.match(h, /class="logo"/);
   assert.doesNotMatch(h, /class="header"/);
@@ -414,7 +417,9 @@ test("the illustrated header: printer on its bench, status and progress, brand b
   const classic = html(newCard({ illustration: false }));
   assert.match(classic, /class="header"/);
   assert.doesNotMatch(classic, /class="banner/);
-  assert.match(html(newCard({}, makeHass(), pc.PrinterMiniCard)), /class="banner ph-printing/);
+  const mini = html(newCard({}, makeHass(), pc.PrinterMiniCard));
+  assert.match(mini, /class="banner has-zoom ph-printing/);
+  assert.match(mini, /class="chip clickable active"/);
 });
 
 test("the illustration's night: illustration_theme, else the sun, else the dark mode", () => {
