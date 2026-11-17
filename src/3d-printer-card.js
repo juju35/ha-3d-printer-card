@@ -2765,6 +2765,7 @@ class PrinterBase extends HTMLElement {
   // and for screen readers). Measured after each render and on each new width, whatever the language: no fixed
   // width threshold.
   _fitPill() {
+    if (!this.isConnected) return;
     for (const t of this.shadowRoot?.querySelectorAll?.(".titles") || []) {
       const row = t.querySelector(".tline");
       const pills = row ? [...row.children].filter((n) => n.matches(".chip")) : [];
@@ -2774,7 +2775,7 @@ class PrinterBase extends HTMLElement {
       const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
       const title = name && getComputedStyle(name).display !== "none" ? textWidth(name) + gap : 0;
       const need = pills.reduce((w, p) => w + p.getBoundingClientRect().width + gap, title - gap);
-      if (need > row.getBoundingClientRect().width - 0.5) {
+      if (need > t.getBoundingClientRect().width - 0.5) {
         t.classList.add("below");
         const banner = t.closest(".banner");
         if (banner) {

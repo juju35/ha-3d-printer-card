@@ -8,7 +8,7 @@ import { test } from "node:test";
 
 const src = readFileSync(new URL("../src/3d-printer-card.js", import.meta.url), "utf8");
 const method = src.match(/\n( +)_fitPill\(\) \{[\s\S]*?\n\1\}\n/)[0].trim();
-const textWidth = src.match(/const textWidth = [\s\S]*?\n\};\n/)[0];
+const textWidth = src.match(/(?:const|var) \w*[tT]extWidth = [\s\S]*?\n\};\n/)[0];
 const CLS = {"titles":  "titles",  "row":  "tline",  "pill":  "chip",  "name":  "name",  "sub":  "sub"};
 
 // Stand-in element: class names, children, a box and a text width.
@@ -69,6 +69,7 @@ const fit = (titles) => {
   const doc = { createRange: () => ({ selectNodeContents(el) { this.el = el; }, getBoundingClientRect() { return { width: this.el.w }; } }) };
   const gcs = (el) => ({ columnGap: "8px", display: el.display, getPropertyValue: () => "10px" });
   const card = new Function("document", "getComputedStyle", `${textWidth}; return { ${method} };`)(doc, gcs);
+  card.isConnected = true;
   card.shadowRoot = { querySelectorAll: (sel) => (titles.matches(sel) ? [titles] : []) };
   card._fitPill();
   return titles.cls;
@@ -77,6 +78,7 @@ const fit = (titles) => {
 // A header: the title (its whole text width), the pill (its whole width), in a row of the given width.
 const header = ({ row = 300, title = 120, pill = 80, banner = false, subBottom = 60 } = {}) => {
   const t = node(`${CLS.titles}`, {
+    box: { width: row, top: 20, bottom: subBottom, height: subBottom - 20 },
     children: [
       node(`${CLS.row}`, { box: { width: row, top: 20, bottom: 40, height: 20 }, children: [node(CLS.name, { w: title }), node(CLS.pill, { w: pill })] }),
       node(CLS.sub, { box: { top: 42, bottom: subBottom, height: subBottom - 42 } }),
