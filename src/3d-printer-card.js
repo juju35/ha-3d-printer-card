@@ -2747,6 +2747,7 @@ class PrinterBase extends HTMLElement {
     this._tick = null;
     this._resize?.disconnect();
     this._fitWidth = null;
+    if (this._fitFrame) cancelAnimationFrame(this._fitFrame);
     this._outside?.off();
     window.removeEventListener("keydown", this._onKey);
     this._pressing = false;
