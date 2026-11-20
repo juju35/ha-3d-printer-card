@@ -2528,7 +2528,7 @@ const BANNER_STYLE = `
   /* The mini card's expand / collapse button: a 24 px glass disc in the banner's top-right corner, the printer kept
      clear of it. */
   .banner .zoom { position: absolute; z-index: 2; top: 5px; right: 5px; margin: 0; color: #33506b; background: rgba(255,255,255,.55);
-                  box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); backdrop-filter: blur(4px); }
+                  box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
   .banner.night .zoom { color: #fff; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
   .banner .zoom:hover { color: #33506b; background: rgba(255,255,255,.75); }
   .banner.night .zoom:hover { color: #fff; background: rgba(255,255,255,.22); }
