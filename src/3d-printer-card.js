@@ -3579,7 +3579,7 @@ for (const card of [
     description: "Compact 3D printer progress: ring, remaining time, end time and layers, with a detail view.",
   },
 ]) {
-  if (!window.customCards.some((c) => c.type === card.type)) window.customCards.push({ ...card, preview: true, documentationURL: "https://github.com/juju35/ha-3d-printer-card" });
+  if (!window.customCards.some((c) => c.type === card.type)) window.customCards.push({ ...card, preview: false, documentationURL: "https://github.com/juju35/ha-3d-printer-card" });
 }
 
 console.info(`%c 3D-PRINTER-CARD %c v${VERSION} `, "color: white; background: #00ae42; font-weight: 700;", "color: #00ae42; background: white; font-weight: 700;");
