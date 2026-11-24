@@ -140,6 +140,7 @@ collapsed:
   - job
 camera_entity: camera.x1_carbon_camera
 light_entity: light.x1_carbon_chamber_light
+power_entity: switch.x1_carbon_plug
 entities:
   chamber: sensor.enclosure_temperature
 language: fr
@@ -176,7 +177,8 @@ language: fr
 | `collapsed` | both | `[job]` | Sections folded by default, among `ams`, `job` and `camera` (`[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it; a click anywhere else folds them back |
 | `camera_entity` | both | — | Camera or image entity to show instead of the integration's camera |
 | `light_entity` | both | — | Light or switch entity for the light button |
-| `entities` | both | — | Entities set by hand, by key, on top of the ones found: `status`, `progress`, `remaining`, `end_time`, `start_time`, `layer`, `total_layers`, `nozzle`, `nozzle_target`, `bed`, `bed_target`, `chamber`, `chamber_target`, `file`, `cover`, `camera`, `light`, `pause`, `resume`, `continue`, `stop`, `weight`, `length`, `speed`, `material`. YAML only (the visual editor keeps it) |
+| `power_entity` | both | — | Switch (a smart plug, Zigbee or other), light or input boolean that powers the printer: adds a power button. Turning it on is immediate; turning it off asks for a confirmation (which warns when a print is under way). The button stays while the printer is off or offline |
+| `entities` | both | — | Entities set by hand, by key, on top of the ones found: `status`, `progress`, `remaining`, `end_time`, `start_time`, `layer`, `total_layers`, `nozzle`, `nozzle_target`, `bed`, `bed_target`, `chamber`, `chamber_target`, `file`, `cover`, `camera`, `light`, `power`, `pause`, `resume`, `continue`, `stop`, `weight`, `length`, `speed`, `material`. YAML only (the visual editor keeps it) |
 | `language` | both | Auto | Force language: `fr`, `en`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt`, `pl`, `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` or `el` (auto-detects from HA settings) |
 
 ## Screenshots
@@ -313,7 +315,7 @@ Each integration's states are mapped to the card's phases, which set the chip, t
 
 ### Controls
 
-Pause, Resume and Stop press the integration's own button entities (`button.press`), after a confirmation at the top of the card; Escape or Cancel closes it. They show only while a print is under way: Pause and Stop while printing or preparing, Resume and Stop while paused (on a PrusaLink printer that needs attention, Resume presses its **Continue** button). Bambu Lab and PrusaLink make a button unavailable when the printer cannot take it — no Pause or Stop while a Bambu Lab printer heats and levels, for instance: the card then greys it out. The light button toggles the light (or switch) entity: the light the integration names (Bambu Lab chamber light), else the printer's first light, or `light_entity`.
+Pause, Resume and Stop press the integration's own button entities (`button.press`), after a confirmation at the top of the card; Escape or Cancel closes it. They show only while a print is under way: Pause and Stop while printing or preparing, Resume and Stop while paused (on a PrusaLink printer that needs attention, Resume presses its **Continue** button). Bambu Lab and PrusaLink make a button unavailable when the printer cannot take it — no Pause or Stop while a Bambu Lab printer heats and levels, for instance: the card then greys it out. The light button toggles the light (or switch) entity: the light the integration names (Bambu Lab chamber light), else the printer's first light, or `light_entity`. With `power_entity` (the printer's smart plug), a power button turns the printer on at once and off after a confirmation at the top of the card — « The print under way will be lost » while a job runs; it stays shown while the printer is off or offline, so it can be turned back on from the card.
 
 ## Development
 
