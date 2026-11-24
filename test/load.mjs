@@ -1,10 +1,9 @@
-// Evaluates src/3d-printer-card.js (a classic script, bundled as is by scripts/build.mjs) in a sandbox with
+// Evaluates the bundled card source (test/source.mjs) (a classic script, bundled as is by scripts/build.mjs) in a sandbox with
 // minimal DOM stand-ins and returns the names the tests need. No dependency, no browser.
-import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
+import { source } from "./source.mjs";
 
-const source = readFileSync(new URL("../src/3d-printer-card.js", import.meta.url), "utf8");
 
 // Shadow root stand-in: keeps the HTML it is given and the listeners it gets.
 const fakeRoot = () => ({
@@ -118,6 +117,6 @@ export const load = () => {
        PrinterMiniCardEditor: customElements.get("printer-3d-mini-card-editor"), window, document })`,
     sandbox,
     // Named after the source, so that node --experimental-test-coverage reports it.
-    { filename: fileURLToPath(new URL("../src/3d-printer-card.js", import.meta.url)) },
+    { filename: fileURLToPath(new URL("../src/index.js", import.meta.url)) },
   );
 };
