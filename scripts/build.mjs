@@ -1,15 +1,16 @@
-// Bundles src/3d-printer-card.js into the single file dist/3d-printer-card.js, inlining the integration logos
+// Bundles the ES modules of src/ (entry src/index.js, assembled by scripts/bundle.mjs) into the single file dist/3d-printer-card.js, inlining the integration logos
 // (Bambu Lab, OctoPrint, Moonraker, PrusaLink) so the card needs no extra resource.
 // Usage: node scripts/build.mjs  (dist/ is not committed: CI and the release workflow build it)
 import { mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { splitDist } from "./i18n-split.mjs";
+import { bundle } from "./bundle.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const pkg = JSON.parse(readFileSync(`${root}package.json`, "utf8"));
 const dataUri = (file) => `data:image/png;base64,${readFileSync(`${root}images/${file}`).toString("base64")}`;
 
-const out = readFileSync(`${root}src/3d-printer-card.js`, "utf8")
+const out = bundle("src/index.js")
   .replace("__VERSION__", pkg.version)
   .replace("__IMG_LOGO_BAMBU__", dataUri("bambu_lab.png"))
   .replace("__IMG_LOGO_OCTOPRINT__", dataUri("octoprint.png"))
