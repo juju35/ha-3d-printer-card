@@ -75,7 +75,7 @@ export const resolve = (hass) => {
 
 export const listPrinters = (hass) => (resolve(hass)?.printers || []).map((p) => ({ value: p.id, label: p.name }));
 
-// The printer of a config, with the entities set by hand (`entities`, `camera_entity`, `light_entity`) on top.
+// The printer of a config, with the entities set by hand (`entities`, `camera_entity`, `light_entity`, `power_entity`) on top.
 export const findPrinter = (hass, config) => {
   const m = resolve(hass);
   if (!m) return { error: "no_registry" };
@@ -85,6 +85,7 @@ export const findPrinter = (hass, config) => {
   const extra = { ...(config.entities && typeof config.entities === "object" ? config.entities : {}) };
   if (config.camera_entity) extra.camera = config.camera_entity;
   if (config.light_entity) extra.light = config.light_entity;
+  if (config.power_entity) extra.power = config.power_entity;
   return { dev: Object.keys(extra).length ? { ...base, e: { ...base.e, ...extra } } : base };
 };
 

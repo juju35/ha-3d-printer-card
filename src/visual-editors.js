@@ -34,6 +34,7 @@ export class PrinterEditorBase extends HTMLElement {
       ...this.constructor.extraFields(tr),
       { type: "grid", name: "", schema: this.constructor.toggles.map(([name]) => ({ name, selector: { boolean: {} } })) },
       { name: "light_entity", selector: { entity: { domain: ["light", "switch"] } } },
+      { name: "power_entity", selector: { entity: { domain: ["switch", "light", "input_boolean"] } } },
       {
         name: "language",
         selector: { select: { mode: "dropdown", options: [{ value: "", label: tr("lang_auto") }, ...LANGUAGES.map(([value, label]) => ({ value, label }))] } },

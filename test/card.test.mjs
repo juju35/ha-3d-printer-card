@@ -446,3 +446,21 @@ test("the illustration's night: illustration_theme, else the dark mode alone", (
   assert.equal(pc.isNight({ states: { "sun.sun": { state: "unavailable" } }, themes: { darkMode: false } }, {}), false);
   assert.match(html(newCard({ illustration_theme: "night" })), /class="banner night /);
 });
+
+test("the power button turns the plug on at once, off only once confirmed, and stays while the printer is offline", () => {
+  const plug = (state) => ({ "switch.printer_plug": { entity_id: "switch.printer_plug", state, attributes: {} } });
+  assert.doesNotMatch(html(newCard()), /data-action="power"/, "no power_entity: no button");
+  const hass = makeHass(plug("on"));
+  const card = newCard({ power_entity: "switch.printer_plug" }, hass);
+  assert.match(html(card), /data-action="power" data-entity="switch.printer_plug"[^>]*aria-pressed="true"/);
+  click(card, { action: "power", entity: "switch.printer_plug" });
+  assert.equal(hass.calls.length, 0);
+  assert.match(html(card), /Turn X1 Carbon off\? The print under way will be lost\./);
+  click(card, { action: "confirm_ok" });
+  assert.deepEqual(hass.calls, [["switch", "turn_off", { entity_id: "switch.printer_plug" }]]);
+  const off = makeHass({ ...plug("off"), "sensor.x1_carbon_print_status": { state: "unavailable" } });
+  const mini = newCard({ power_entity: "switch.printer_plug" }, off, pc.PrinterMiniCard);
+  assert.match(html(mini), /data-action="power"[^>]*aria-pressed="false"/);
+  click(mini, { action: "power", entity: "switch.printer_plug" });
+  assert.deepEqual(off.calls, [["switch", "turn_on", { entity_id: "switch.printer_plug" }]]);
+});

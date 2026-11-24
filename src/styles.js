@@ -644,9 +644,9 @@ export class PrinterBase extends HTMLElement {
       ev.stopPropagation();
       const action = el?.dataset.action;
       if (action === "confirm_ok") {
-        const { entity } = this._confirm;
+        const { entity, domain = "button", service = "press" } = this._confirm;
         this._closeConfirm();
-        this._call("button", "press", { entity_id: entity });
+        this._call(domain, service, { entity_id: entity });
       } else if (action === "confirm_cancel" || (action === "confirm_backdrop" && path[0] === el)) {
         this._closeConfirm();
       }
@@ -665,6 +665,14 @@ export class PrinterBase extends HTMLElement {
       if (this._cmdDisabled(entity)) return;
       const name = this._config.title || this._dev?.name || "";
       return this._openConfirm({ entity, text: this._t(COMMANDS[cmd].text, { name }), ok: this._t(cmd) });
+    }
+    // Power: on at once; off (the printer's plug, a print under way lost) only once confirmed.
+    if (action === "power" && entity) {
+      const domain = entity.split(".")[0];
+      if (this._s(entity)?.state !== "on") return this._call(domain, "turn_on", { entity_id: entity });
+      const name = this._config.title || this._dev?.name || "";
+      const text = this._t(JOB_PHASES.has(this._phase) ? "confirm_power_off_job" : "confirm_power_off", { name });
+      return this._openConfirm({ entity, domain, service: "turn_off", text, ok: this._t("turn_off") });
     }
     if (action === "light" && entity) {
       return this._call(entity.split(".")[0], "toggle", { entity_id: entity });
@@ -886,6 +894,17 @@ export class PrinterBase extends HTMLElement {
     return `<button class="btn${on ? " on" : ""}${round ? " round" : ""}" data-action="light" data-entity="${esc(id)}" title="${label}" aria-label="${label}" aria-pressed="${on}"${disabled}>${svgIcon(on ? ICONS.light_on : ICONS.light_off)}${round ? "" : `<span>${label}</span>`}</button>`;
   }
 
+  // The printer's power (its smart plug): set by `power_entity`, shown even while the printer is off or offline.
+  _powerButton(dev, round = false) {
+    const id = dev.e.power;
+    const s = this._s(id);
+    if (!id || !s) return "";
+    const on = s.state === "on";
+    const label = esc(this._t("power"));
+    const disabled = s.state === "unavailable" ? " disabled" : "";
+    return `<button class="btn${on ? " on" : ""}${round ? " round" : ""}" data-action="power" data-entity="${esc(id)}" title="${label}" aria-label="${label}" aria-pressed="${on}"${disabled}>${svgIcon(ICONS.power)}${round ? "" : `<span>${label}</span>`}</button>`;
+  }
+
   // The remaining-time line: "1 h 23 min · Ends 14:35" while a job runs, "Finished 5 minutes ago" after.
   // `split` (mini card): the estimated end on a line of its own.
   _timeLine(dev, phase, split = false) {
@@ -943,8 +962,8 @@ export class PrinterCard extends PrinterBase {
     this._phase = phase;
     const parts = [this._hero(dev, phase)];
     const buttons = c.show_controls !== false ? this._commands(dev, phase).map((cmd) => this._cmdButton(dev, cmd)) : [];
-    const light = this._lightButton(dev);
-    if (buttons.length || light) parts.push(`<div class="controls">${buttons.join("")}${light}</div>`);
+    const toggles = this._powerButton(dev) + this._lightButton(dev);
+    if (buttons.length || toggles) parts.push(`<div class="controls">${buttons.join("")}${toggles}</div>`);
     if (c.show_temperatures !== false) parts.push(this._temperatures(dev));
     if (c.show_ams !== false) parts.push(this._ams(dev));
     if (c.show_job !== false) parts.push(this._job(dev, phase));
@@ -1172,14 +1191,14 @@ export class PrinterMiniCard extends PrinterCard {
     const layers = shown ? this._layers(dev) : "";
     if (layers) lines.push(`<div class="line">${svgIcon(ICONS.layers)}<span>${esc(layers)}</span></div>`);
     const buttons = this._config.show_controls !== false ? this._commands(dev, phase).map((cmd) => this._cmdButton(dev, cmd, true)) : [];
-    const light = this._lightButton(dev, true);
+    const toggles = this._powerButton(dev, true) + this._lightButton(dev, true);
     return `<style>${BASE_STYLE}${MINI_STYLE}${this._bannerStyle()}${this._accentStyle(dev)}</style>
       <ha-card>
         ${this._header(dev, phase)}
         <div class="content">
           ${this._ring(dev, phase, pct, inner)}
           <div class="info">${lines.filter(Boolean).join("")}</div>
-          ${buttons.length || light ? `<div class="controls">${buttons.join("")}${light}</div>` : ""}
+          ${buttons.length || toggles ? `<div class="controls">${buttons.join("")}${toggles}</div>` : ""}
         </div>
       </ha-card>`;
   }

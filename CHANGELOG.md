@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0 - 2026-11-24
+
+### Features
+- Power button: the new `power_entity` option (a switch such as a Zigbee smart plug, a light or an input boolean, also in the visual editor and as the `power` key of `entities`) adds a power button next to the light button, on the full and the mini card. Turning the printer on is immediate; turning it off asks for a confirmation at the top of the card, which warns that the print under way will be lost while a job runs. The button stays while the printer is off or offline (#25)
+
 ## 1.1.5 - 2026-11-24
 
 ### Maintenance
