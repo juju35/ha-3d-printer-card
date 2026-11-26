@@ -82,11 +82,14 @@ test("the full card shows progress, remaining time, layers, temperatures and fil
   assert.match(h, /Chamber/);
   assert.match(h, /AMS 1/);
   assert.match(h, /Bambu PETG HF/);
-  assert.match(h, /class="slot clickable active"/);
+  assert.match(h, /class="slot clickable active feeding"/);
   assert.match(h, /class="slot clickable empty"/);
   assert.match(h, /External spool/);
   assert.match(h, /Desk organizer/);
-  assert.match(h, /class="thumb clickable"/);
+  assert.match(h, /class="media print clickable"/);
+  // The spools: drawn in their color, as full as what is left; the one in use turns while printing.
+  assert.match(h, /<span class="fleft warn">18 %<\/span>/);
+  assert.match(h, /class="ghost"/);
   assert.match(h, /anim-printing/);
   // Percentages are whole numbers.
   assert.doesNotMatch(h, /\d+\.\d+ %/);
@@ -463,4 +466,101 @@ test("the power button turns the plug on at once, off only once confirmed, and s
   assert.match(html(mini), /data-action="power"[^>]*aria-pressed="false"/);
   click(mini, { action: "power", entity: "switch.printer_plug" });
   assert.deepEqual(off.calls, [["switch", "turn_on", { entity_id: "switch.printer_plug" }]]);
+});
+
+test("the stage: the preview filled up to the layer printed, the camera at the button, live through Home Assistant's player", () => {
+  const card = newCard();
+  let h = html(card);
+  // Layer 112 of 238: 52.9 % of the preview still to print, faded, under the level line.
+  assert.match(h, /class="pbox" data-ratio="image.x1_carbon_cover_image" style="--ar:1;--todo:52.9%"/);
+  assert.match(h, /class="pic todo"[\s\S]*class="pic done"[\s\S]*class="level"/);
+  assert.match(h, /data-action="media_view" data-view="camera"[^>]*aria-label="Show the camera"/);
+  assert.doesNotMatch(h, /<slot name="live">/);
+  // The camera, at the button: its snapshot until Home Assistant's player is there, then the player in the slot.
+  click(card, { action: "media_view", view: "camera" });
+  h = html(card);
+  assert.match(h, /class="media camera clickable"/);
+  assert.match(h, /<slot name="live"><\/slot>/);
+  assert.doesNotMatch(h, /class="tag"/, "no Live tag while only the snapshot shows");
+  assert.match(h, /data-view="print"[^>]*aria-label="Show the print"/);
+  assert.match(h, /data-entity="camera.x1_carbon_camera" title="Open the camera"/);
+  // Snapshots only: no slot.
+  assert.doesNotMatch(html(newCard({ media_view: "camera", camera_view: "auto" })), /<slot name="live">/);
+  // Finished: the whole preview, no level line.
+  const done = html(newCard({ show_camera: false }, makeHass(finished)));
+  assert.match(done, /--todo:0%"><img class="pic"/);
+  assert.doesNotMatch(done, /class="level"/);
+  // No picture at all: the drawn printer, animated by the phase.
+  assert.match(html(newCard({ show_camera: false, show_thumbnail: false })), /class="media art clickable"[^>]*><svg class="printer"/);
+});
+
+test("the live view is Home Assistant's camera player, kept in the light DOM and stopped once off the page", () => {
+  const added = [];
+  class Stream {
+    constructor() {
+      this.dataset = {};
+      this.attributes = {};
+    }
+    setAttribute(k, v) {
+      this.attributes[k] = v;
+    }
+    remove() {
+      this.removed = true;
+    }
+  }
+  // A sandbox of its own: the player defined here stays out of the other tests.
+  const own = load();
+  own.window.customElements.define("ha-camera-stream", Stream);
+  const card = new own.PrinterCard();
+  card.appendChild = (el) => added.push(el);
+  card.setConfig({ device: "X1 Carbon", media_view: "camera" });
+  card.hass = makeHass();
+  assert.equal(added.length, 1);
+  const el = added[0];
+  assert.equal(el.slot, "live");
+  assert.equal(el.stateObj.entity_id, "camera.x1_carbon_camera");
+  assert.equal(el.muted, true);
+  assert.match(html(card), /class="tag"><span class="rec"><\/span>Live/);
+  click(card, { action: "media_view", view: "print" });
+  assert.equal(el.removed, true, "back to the print: the player stops");
+  click(card, { action: "media_view", view: "camera" });
+  assert.equal(added.length, 2);
+  card.disconnectedCallback();
+  assert.equal(added[1].removed, true, "off the page: the player stops");
+});
+
+test("the snapshot refreshes every 10 s while it shows, and stops with the player or off the page", () => {
+  const sb = load();
+  const card = new sb.PrinterCard();
+  card.setConfig({ device: "X1 Carbon", media_view: "camera", camera_view: "auto" });
+  card.hass = makeHass();
+  assert.ok(card._snapTimer, "camera_view: auto starts the refresh");
+  assert.equal(sb.window.intervals.has(card._snapTimer), true);
+  click(card, { action: "media_view", view: "print" });
+  assert.equal(card._snapTimer, null, "back to the print: no refresh");
+  click(card, { action: "media_view", view: "camera" });
+  const timer = card._snapTimer;
+  card.disconnectedCallback();
+  assert.equal(sb.window.intervals.has(timer), false, "off the page: no refresh");
+});
+
+test("the preview's shape is kept per entity, whatever its access token", () => {
+  const card = newCard({ show_camera: false });
+  const listener = card.shadowRoot.listeners.load;
+  const img = { classList: { contains: (c) => c === "pic" }, closest: () => ({ dataset: { ratio: "image.x1_carbon_cover_image" } }), naturalWidth: 160, naturalHeight: 90 };
+  listener({ target: img });
+  assert.match(html(card), /data-ratio="image.x1_carbon_cover_image" style="--ar:1.778;/);
+  const id = "image.x1_carbon_cover_image";
+  const hass = makeHass();
+  card.hass = { ...hass, states: { ...hass.states, [id]: { ...hass.states[id], attributes: { entity_picture: "/api/image_proxy/x?token=new" } } } };
+  assert.match(html(card), /--ar:1.778;/, "a new token keeps the shape");
+});
+
+test("a config still folding the former camera section works, and preparing before the first percent waits", () => {
+  const card = newCard({ collapsed: ["camera", "job"] });
+  assert.deepEqual(plain(card._config.collapsed), ["job"]);
+  assert.deepEqual(plain(newCard({ collapsed: "camera" })._config.collapsed), []);
+  const prep = html(newCard({}, makeHass({ ...preparing, "sensor.x1_carbon_print_progress": { state: "0" } })));
+  assert.match(prep, /<div class="big word">Preparing<\/div>/);
+  assert.match(prep, /class="pbar waiting"><div style="width:100%">/);
 });

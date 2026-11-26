@@ -176,4 +176,4 @@ export const JOB_PHASES = new Set(["printing", "preparing", "paused", "attention
 export const RING_ANIM = { printing: "anim-printing", preparing: "anim-preparing", paused: "anim-paused", attention: "anim-paused" };
 
 export const DEFAULT_COLLAPSED = ["job"];
-export const SECTIONS = ["ams", "job", "camera"];
+export const SECTIONS = ["ams", "job"];

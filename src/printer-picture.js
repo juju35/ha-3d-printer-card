@@ -42,6 +42,21 @@ export const printerSvg = (phase, pct, filament) => {
   </svg>`;
 };
 
+// A filament spool seen from the front, in a 40 × 48 box: its two flanges, the core, and the filament wound between
+// them, as thick as what is left (`level`, 0 to 1; 1 when the spool does not tell). The winding's lines run across
+// the filament (they scroll on the spool in use while printing). `clip` names the clip path, unique in the card.
+// An empty slot: the flanges and the core, the filament's place dashed.
+export const spoolSvg = (color, level, clip) => {
+  const flanges = `<rect class="flange" x="2" y="2" width="6" height="44" rx="2.5"/><rect class="flange" x="32" y="2" width="6" height="44" rx="2.5"/>`;
+  const core = `<rect class="core" x="8" y="19" width="24" height="10"/>`;
+  if (color === null) return `<svg class="spool-svg" viewBox="0 0 40 48" aria-hidden="true">${core}<rect class="ghost" x="9" y="5" width="22" height="38" rx="2"/>${flanges}</svg>`;
+  const h = Math.round((12 + 28 * clamp(level, 0, 1)) * 10) / 10;
+  const y = Math.round((24 - h / 2) * 10) / 10;
+  const lines = [];
+  for (let x = 6.5; x < 36; x += 3) lines.push(`M${x} ${y}v${h}`);
+  return `<svg class="spool-svg" viewBox="0 0 40 48" aria-hidden="true"><defs><clipPath id="${clip}"><rect x="8" y="${y}" width="24" height="${h}"/></clipPath></defs>${core}<g clip-path="url(#${clip})"><rect class="fil" x="8" y="${y}" width="24" height="${h}" style="fill:${esc(color)}"/><path class="wind" d="${lines.join("")}"/><rect class="shine" x="8" y="${y}" width="5" height="${h}"/></g><rect class="fil-edge" x="8" y="${y}" width="24" height="${h}"/>${flanges}</svg>`;
+};
+
 // Progress ring around the picture: the track, the progress arc, and the moving highlight of the phase.
 export const ringSvg = (pct) => {
   const v = clamp(pct ?? 0, 0, 100);

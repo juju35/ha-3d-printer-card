@@ -17,9 +17,9 @@
   <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/images/prusalink.png" alt="PrusaLink" width="64">
 </p>
 
-Lovelace cards for Home Assistant to follow and control **3D printers**: **[Bambu Lab](https://bambulab.com)**, **[OctoPrint](https://octoprint.org)**, **[Klipper](https://www.klipper3d.org) through [Moonraker](https://moonraker.readthedocs.io)** and **[Prusa](https://www.prusa3d.com) through PrusaLink**. State, progress ring, remaining time and estimated end, layers, nozzle / bed / chamber temperatures, print thumbnail and camera, Bambu Lab AMS filaments, and pause / resume / stop buttons with a confirmation, at a glance.
+Lovelace cards for Home Assistant to follow and control **3D printers**: **[Bambu Lab](https://bambulab.com)**, **[OctoPrint](https://octoprint.org)**, **[Klipper](https://www.klipper3d.org) through [Moonraker](https://moonraker.readthedocs.io)** and **[Prusa](https://www.prusa3d.com) through PrusaLink**. State, the print's preview filling up layer by layer or the live camera, progress bar, remaining time and estimated end, layers, nozzle / bed / chamber temperatures, Bambu Lab AMS spools, and pause / resume / stop buttons with a confirmation, at a glance.
 
-The cards work on top of the integrations you already use — [Bambu Lab](https://github.com/greghesp/ha-bambulab), [OctoPrint](https://www.home-assistant.io/integrations/octoprint/), [Moonraker](https://github.com/marcolivierarsenault/moonraker-home-assistant) and [PrusaLink](https://www.home-assistant.io/integrations/prusalink/). Entities are **discovered automatically** from the Home Assistant registries: you don't pick them one by one, and it works whatever your entity ids. The drawn printer in the ring is animated by what the printer is doing.
+The cards work on top of the integrations you already use — [Bambu Lab](https://github.com/greghesp/ha-bambulab), [OctoPrint](https://www.home-assistant.io/integrations/octoprint/), [Moonraker](https://github.com/marcolivierarsenault/moonraker-home-assistant) and [PrusaLink](https://www.home-assistant.io/integrations/prusalink/). Entities are **discovered automatically** from the Home Assistant registries: you don't pick them one by one, and it works whatever your entity ids. The drawn printer in the header (and in the mini card's ring) is animated by what the printer is doing.
 
 [![Open your Home Assistant instance and open a repository inside the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=juju35&repository=ha-3d-printer-card&category=plugin)
 
@@ -38,13 +38,14 @@ The cards work on top of the integrations you already use — [Bambu Lab](https:
 - Two cards: a full **3D Printer Card** (`custom:printer-3d-card`) and a compact **3D Printer Mini Card** (`custom:printer-3d-mini-card`)
 - Bambu Lab, OctoPrint, Moonraker (Klipper) and PrusaLink printers, several printers supported, the Bambu Lab AMS units merged with their printer
 - Illustrated header (90 px, full and mini card): the drawn printer on a workshop bench, animated by its state, the name and the status (with the progress while printing) on the wall, a bench strip at the bottom; night picture with a dark Home Assistant theme, day picture with a light one, or forced with `illustration_theme`; `illustration: false` brings back the classic header
-- Progress ring around a drawn printer, animated by its state (see [Animations](#animations)): the toolhead sweeps across and the spool turns while printing, heat rises while preparing, the toolhead parks when paused, the part sparkles when finished, the alert badge blinks on an error
+- The print's stage: its preview (Bambu Lab cover image, PrusaLink and Moonraker previews) filling up layer by layer — what is left faded, the printed part in color under a level line in the state's color — or the camera, **live** through Home Assistant's own player (WebRTC, HLS or MJPEG), switched by the round button in the corner (the choice is kept per printer in the browser) and opened full size by the other one; the drawn printer when there is neither
+- Big percentage, remaining time and estimated end above a progress bar in the state's color, animated by the state (see [Animations](#animations)): a highlight runs along it while printing, stripes slide while preparing, it breathes when paused
+- Mini card: a progress ring around a drawn printer, animated by its state: the toolhead sweeps across and the spool turns while printing, heat rises while preparing, the toolhead parks when paused, the part sparkles when finished, the alert badge blinks on an error
 - Header icon of a 3D printer with the integration's logo as a badge (opens its site), tinted with the printer state: blue printing or preparing, orange paused, green finished, red on an error or offline, grey idle; buttons in the integration's color
 - Remaining time and estimated end (computed from each other when the integration gives only one), current / total layers, the Bambu Lab stage (heating, levelling, filament change…) and its HMS error messages
 - Nozzle (or left and right nozzles on a dual-nozzle Bambu Lab), bed and chamber temperatures, with their target while heating
-- Bambu Lab AMS and external spool: color swatch, filament type and name, remaining amount, active slot, AMS humidity and temperature
+- Bambu Lab AMS and external spool: each spool drawn in its filament's color, as full as what is left, with its type, name and remaining percentage (amber, then red when running low); the spool in use outlined and turning while printing; the empty slot dashed; AMS humidity and temperature
 - Print job details: start time, weight, filament length, speed, material and file
-- Print thumbnail (Bambu Lab cover image, PrusaLink and Moonraker previews) and camera
 - Pause / resume / stop buttons, each with a confirmation at the top of the card, and a light button (chamber light, case light…)
 - Collapsible sections (print job folded by default), folded back by a click anywhere else
 - Sections view: the full card takes 12 columns by default and at least 6, the mini card 6; narrow widths get their own layout (see [Screenshots](#screenshots))
@@ -136,6 +137,8 @@ show_temperatures: true
 show_ams: true
 show_job: true
 show_camera: true
+media_view: print
+camera_view: live
 collapsed:
   - job
 camera_entity: camera.x1_carbon_camera
@@ -169,12 +172,14 @@ language: fr
 | `show_controls` | both | `true` | Pause / resume / stop buttons while a print is under way, each asking for a confirmation |
 | `show_light` | both | `true` | Light button (the printer's light, or `light_entity`) |
 | `zoom` | mini | `true` | Detail button at the top right of the mini card: it shows the full card's content (with the same options, so `show_ams`, `collapsed`, `camera_entity`… can be set on the mini card too, in its visual editor as well) and switches back to the compact view; a click outside the card also brings the compact view back. `false` removes the button |
-| `show_thumbnail` | both | `true` | Thumbnail of the print next to the ring (cover image or job preview; the camera when `show_camera` is `false`) |
+| `show_thumbnail` | both | `true` | The print's preview on the stage (cover image or job preview), filling up layer by layer |
 | `show_temperatures` | both | `true` | Nozzle, bed and chamber temperatures |
 | `show_ams` | both | `true` | Filaments of the Bambu Lab AMS units and external spool |
 | `show_job` | both | `true` | Print job details: start time, weight, filament length, speed, material, file |
-| `show_camera` | both | `true` | Camera picture (click it for the live view) |
-| `collapsed` | both | `[job]` | Sections folded by default, among `ams`, `job` and `camera` (`[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it; a click anywhere else folds them back |
+| `show_camera` | both | `true` | The camera on the stage (click it, or its corner button, to open it full size) |
+| `media_view` | both | `print` | Picture the stage shows first: `print` (the preview) or `camera`. Once switched with the corner button, the choice is kept per printer in the browser. The other one shows when the first has no picture |
+| `camera_view` | both | `live` | `live`: the camera streams through Home Assistant's player (its snapshot, refreshed every 10 s, until the player is loaded); `auto`: the camera's snapshot, refreshed every 10 s |
+| `collapsed` | both | `[job]` | Sections folded by default, among `ams` and `job` (the former `camera` is ignored; `[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it; a click anywhere else folds them back |
 | `camera_entity` | both | — | Camera or image entity to show instead of the integration's camera |
 | `light_entity` | both | — | Light or switch entity for the light button |
 | `power_entity` | both | — | Switch (a smart plug, Zigbee or other), light or input boolean that powers the printer: adds a power button. Turning it on is immediate; turning it off asks for a confirmation (which warns when a print is under way). The button stays while the printer is off or offline |
@@ -187,21 +192,21 @@ All captures are rendered from mock data by `npm run screenshots`, in English, e
 
 ### Animations
 
-The drawn printer in the progress ring animates to match what the printer is doing and settles back to a still picture once it is idle. Each state plays its own animation, and every one of them honours `prefers-reduced-motion`.
+The drawn printer in the header (and in the mini card's ring), the preview's level line and the progress bar animate to match what the printer is doing and settle back to a still picture once it is idle. Each state plays its own animation, and every one of them honours `prefers-reduced-motion`.
 
-While printing, the toolhead sweeps across the bed with a glowing nozzle tip, the spool turns, the top layer of the part glows and a highlight runs around the ring; the part grows with the progress:
+While printing, the toolhead sweeps across the bed with a glowing nozzle tip, the spool turns, the top layer of the part glows, the preview's level line pulses and a highlight runs along the progress bar; the part grows with the progress:
 
 | Light | Dark |
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/screenshots/printing.gif" alt="printing animation" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/screenshots/printing-dark.gif" alt="printing animation dark" width="400"> |
 
-While preparing (heating, levelling, loading filament), heat rises from the bed, the nozzle glows and the ring spins; Pause and Stop stay greyed out until the printer accepts them:
+While preparing (heating, levelling, loading filament), heat rises from the bed, the nozzle glows and stripes slide in the progress bar; Pause and Stop stay greyed out until the printer accepts them:
 
 | Light | Dark |
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/screenshots/preparing-light.gif" alt="preparing animation" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/screenshots/preparing.gif" alt="preparing animation dark" width="400"> |
 
-Paused, the toolhead waits parked at the side while the progress arc and the pause badge breathe:
+Paused, the toolhead waits parked at the side while the progress bar and the pause badge breathe:
 
 | Light | Dark |
 |---|---|
@@ -221,11 +226,17 @@ On a failed print or an error, the red alert badge blinks and the header icon tu
 
 ### <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/images/bambu_lab.png" alt="" width="24"> Bambu Lab
 
-X1 Carbon with its AMS, printing: progress ring, remaining time and end, layers, temperatures, the four AMS slots (the active one outlined, the empty one dashed) and the external spool, print job details and camera:
+X1 Carbon with its AMS, printing: the preview filled up to layer 112 of 238, remaining time and end, progress bar, temperatures, the four AMS spools (the active one outlined, the empty one dashed, the low one in amber) and the external spool, print job details:
 
 | Light | Dark |
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/screenshots/card.png" alt="bambu lab card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/screenshots/card-dark.png" alt="bambu lab card dark" width="400"> |
+
+The camera on the stage, after the corner button: live through Home Assistant's player (here its snapshot), with the buttons to go back to the print and to open the camera full size:
+
+| Light | Dark |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/screenshots/card-camera-light.png" alt="camera on the stage" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/screenshots/card-camera.png" alt="camera on the stage dark" width="400"> |
 
 Mini card, and its detail view (detail button at the top right):
 
@@ -249,7 +260,7 @@ Finished print, and the confirmation asked before stopping a print (also before 
 
 ### <img src="https://raw.githubusercontent.com/juju35/ha-3d-printer-card/main/images/octoprint.png" alt="" width="24"> OctoPrint
 
-A printer driven by OctoPrint: the remaining time comes from the estimated finish time, and the webcam shows in the camera section:
+A printer driven by OctoPrint: the remaining time comes from the estimated finish time, and with no print preview the webcam takes the stage:
 
 | Light | Dark |
 |---|---|
@@ -285,7 +296,7 @@ A paused Prusa MK4: Resume and Stop, the job preview, material and speed:
 
 ### Narrow cards
 
-The full card in a narrow column (238 px) and the mini card at 6 columns of a phone's Sections view (170 px): the ring shrinks, the thumbnail gives way, the AMS slots go two by two and the status chip keeps its colored dot:
+The full card in a narrow column (238 px) and the mini card at 6 columns of a phone's Sections view (170 px): the stage's picture turns 4:3, the remaining time goes under the percentage, the AMS spools go two by two and the status chip keeps its colored dot:
 
 | Full card | Mini card |
 |---|---|
