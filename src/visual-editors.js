@@ -92,7 +92,7 @@ export class PrinterCardEditor extends PrinterEditorBase {
   }
 
   static get defaults() {
-    return { collapsed: DEFAULT_COLLAPSED, illustration_theme: "auto" };
+    return { collapsed: DEFAULT_COLLAPSED, illustration_theme: "auto", media_view: "print", camera_view: "live" };
   }
 
   static extraFields(tr) {
@@ -102,6 +102,8 @@ export class PrinterCardEditor extends PrinterEditorBase {
         name: "collapsed",
         selector: { select: { multiple: true, mode: "list", options: SECTIONS.map((value) => ({ value, label: tr(value) })) } },
       },
+      { name: "media_view", selector: { select: { mode: "dropdown", options: ["print", "camera"].map((value) => ({ value, label: tr(`media_${value}`) })) } } },
+      { name: "camera_view", selector: { select: { mode: "dropdown", options: ["live", "auto"].map((value) => ({ value, label: tr(`camera_${value}`) })) } } },
       { name: "camera_entity", selector: { entity: { domain: ["camera", "image"] } } },
     ];
   }

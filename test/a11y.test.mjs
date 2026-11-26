@@ -32,17 +32,19 @@ test("every clickable element of the full and mini cards can be reached and used
   }
 });
 
-test("icon-only buttons, the ring and the thumbnail have a name", () => {
+test("icon-only buttons, the ring, the progress and the stage's picture have a name", () => {
   const mini = newCard({}, pc.PrinterMiniCard).shadowRoot.innerHTML;
   for (const tag of mini.match(/<button class="btn[^"]*round[^>]*>/g)) assert.match(tag, /aria-label="[^"]+"/);
+  assert.match(mini, /<div class="ring [^"]*"[^>]*aria-label="Progress 47 %"/);
   const full = newCard().shadowRoot.innerHTML;
-  assert.match(full, /<div class="ring [^"]*"[^>]*aria-label="Progress 47 %"/);
-  assert.match(full, /class="thumb clickable"[^>]*aria-label="Thumbnail of the print"/);
+  assert.match(full, /<div class="big clickable"[^>]*aria-label="Progress 47 %"/);
+  assert.match(full, /class="media print clickable"[^>]*aria-label="Thumbnail of the print"/);
+  for (const tag of full.match(/<button class="mbtn"[^>]*>/g)) assert.match(tag, /aria-label="[^"]+"/);
 });
 
 test("the section titles are buttons that tell whether they are unfolded", () => {
-  const html = newCard({ collapsed: ["camera"] }).shadowRoot.innerHTML;
-  assert.match(html, /role="button" tabindex="0" data-action="toggle_section" data-section="camera" aria-expanded="false"/);
+  const html = newCard({ collapsed: ["job"] }).shadowRoot.innerHTML;
+  assert.match(html, /role="button" tabindex="0" data-action="toggle_section" data-section="job" aria-expanded="false"/);
   assert.match(html, /data-section="ams" aria-expanded="true"/);
 });
 

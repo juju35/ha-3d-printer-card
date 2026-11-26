@@ -5,7 +5,7 @@ import { ICONS } from "./core.js";
 import { BRANDS, DEFAULT_COLLAPSED, JOB_PHASES, PHASE_CLASS, RING_ANIM } from "./integrations.js";
 import { ago, clamp, esc, filamentColor, fmtClock, fmtHours, fmtTemp, fmtUnit, hoursOf, intlLocale, num, pretty, svgIcon, t, valid } from "./helpers.js";
 import { findPrinter, phaseOf, resolve } from "./registry-based-resolution.js";
-import { BADGES, printerSvg, ringSvg } from "./printer-picture.js";
+import { BADGES, printerSvg, ringSvg, spoolSvg } from "./printer-picture.js";
 import { bannerPrinterSvg, isNight, workshopSvg } from "./header-illustration.js";
 
 export const BASE_STYLE = `
@@ -179,14 +179,59 @@ export const DIALOG_STYLE = `
 
 export const FULL_STYLE = `
   .content { padding: 8px 12px 12px; display: flex; flex-direction: column; gap: 12px; }
-  .hero { display: flex; gap: 14px; align-items: center; }
+  /* The stage: the print's picture in a rounded frame, the progress under it. */
+  .stage { display: flex; flex-direction: column; gap: 10px; }
+  .frame { position: relative; }
+  .media { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 9; max-height: 300px; width: 100%; overflow: hidden;
+           border-radius: 12px; background: var(--secondary-background-color, rgba(127,127,127,.08)); }
+  .media:focus-visible { outline-offset: 2px; border-radius: 12px; }
+  .media { container-type: size; }
+  .media .pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+  .pbox { position: relative; aspect-ratio: var(--ar); width: min(100cqw, 100cqh * var(--ar)); }
+  .media.camera { background: #0e1013; }
+  /* The preview filled up to the layer printed: what is left faded and grey, the printed part in color under a level
+     line in the phase's color. */
+  .media .pic.todo { opacity: .28; filter: grayscale(1); }
+  .media .pic.done { clip-path: inset(var(--todo) 0 0 0); transition: clip-path .6s ease; }
+  .media .level { position: absolute; left: -6px; right: -6px; top: var(--todo); height: 2px; margin-top: -1px; border-radius: 1px;
+                  background: var(--c, var(--pc-accent)); box-shadow: 0 0 8px var(--c, var(--pc-accent)); transition: top .6s ease; }
+  .anim-printing .media .level { animation: pc-fade 2s ease-in-out infinite; }
+  .media.art .printer { position: relative; height: 82%; width: auto; aspect-ratio: 1; }
+  .media ::slotted(ha-camera-stream) { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .media .tag { position: absolute; z-index: 1; left: 8px; top: 8px; display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px;
+                border-radius: 12px; font-size: 11px; font-weight: 500; color: #fff; background: rgba(0,0,0,.45);
+                -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .media .rec { width: 7px; height: 7px; border-radius: 50%; background: #ff453a; animation: pc-fade 2s ease-in-out infinite; }
+  .media .pbadge { z-index: 1; right: 8px; bottom: 8px; }
+  /* Smoked-glass round buttons in the frame's top-right corner: switch the picture, open the camera. */
+  .mbtns { position: absolute; z-index: 2; top: 8px; right: 8px; display: flex; gap: 6px; }
+  .mbtn { all: unset; box-sizing: border-box; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+          color: var(--primary-text-color); background: color-mix(in srgb, var(--card-background-color, #fff) 72%, transparent);
+          box-shadow: inset 0 0 0 1px rgba(127,127,127,.25); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .mbtn .icon { width: 18px; height: 18px; color: var(--pc-accent); }
+  .mbtn:hover { background: color-mix(in srgb, var(--card-background-color, #fff) 90%, transparent); }
+  .mbtn:focus-visible { outline: 2px solid var(--primary-color, var(--pc-accent)); outline-offset: 2px; }
+  .progress { display: flex; flex-direction: column; gap: 6px; }
+  .prow { display: flex; align-items: flex-end; gap: 12px; }
+  .prow .big { flex: none; }
+  .ptime { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
+  .ptime .remain { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .pbar { height: 6px; border-radius: 3px; background: var(--divider-color, rgba(127,127,127,.25)); overflow: hidden; }
+  .pbar > div { position: relative; height: 100%; border-radius: 3px; background: var(--c, var(--pc-accent)); transition: width .6s ease; overflow: hidden; }
+  /* Printing: a highlight runs along the bar. Preparing: stripes slide. Paused: the bar breathes. */
+  .anim-printing .pbar > div::after { content: ""; position: absolute; inset: 0; width: 40%;
+                                      background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation: pc-sweep 2.2s ease-in-out infinite; }
+  .anim-preparing .pbar > div { min-width: 100%; background: repeating-linear-gradient(-45deg, var(--c) 0 8px, color-mix(in srgb, var(--c) 45%, transparent) 8px 16px);
+                                background-size: 22.6px 100%; animation: pc-stripes .8s linear infinite; }
+  .anim-paused .pbar > div { animation: pc-fade 3s ease-in-out infinite; }
+  .pmeta { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  @keyframes pc-sweep { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+  @keyframes pc-stripes { from { background-position: 0 0; } to { background-position: 22.6px 0; } }
   .big { font-size: 30px; font-weight: 400; line-height: 1; }
   .big small { font-size: 14px; margin-left: 2px; color: var(--secondary-text-color); }
   .big.word { font-size: 22px; }
   .remain { font-size: 13px; color: var(--primary-text-color); font-weight: 500; }
   .remain .muted { font-weight: 400; white-space: nowrap; }
-  .thumb { flex: none; width: 76px; height: 76px; border-radius: 12px; overflow: hidden; background: var(--secondary-background-color, rgba(127,127,127,.08)); }
-  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .controls { display: flex; flex-wrap: wrap; gap: 6px; }
   .controls .btn { flex: 1 1 auto; }
   .section-title { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; text-transform: uppercase;
@@ -210,32 +255,42 @@ export const FULL_STYLE = `
   .ams { display: flex; flex-direction: column; gap: 8px; }
   .unit-head { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--secondary-text-color); }
   .unit-head .unit-name { font-weight: 500; color: var(--primary-text-color); }
-  .unit-head .hum { margin-left: auto; display: inline-flex; align-items: center; gap: 2px; }
+  .unit-head .hum { display: inline-flex; align-items: center; gap: 2px; }
+  .unit-head .unit-name { margin-right: auto; }
   .unit-head .icon { width: 14px; height: 14px; }
   .slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-  .slot { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px 6px; border-radius: 10px; min-width: 0;
+  .slot { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px 6px; border-radius: 10px; min-width: 0;
           background: var(--secondary-background-color, rgba(127,127,127,.08)); border: 1px solid transparent; box-sizing: border-box; }
   .slot.active { border-color: color-mix(in srgb, var(--pc-accent) 60%, transparent); background: color-mix(in srgb, var(--pc-accent) 10%, var(--secondary-background-color, transparent)); }
-  .swatch { width: 26px; height: 26px; border-radius: 50%; background: var(--sw); box-shadow: inset 0 0 0 1px rgba(127,127,127,.35); position: relative; }
-  .swatch::after { content: ""; position: absolute; inset: 9px; border-radius: 50%; background: var(--card-background-color, #fff); opacity: .9; }
-  .slot.empty .swatch { background: none; box-shadow: none; border: 1.5px dashed var(--secondary-text-color); box-sizing: border-box; opacity: .7; }
-  .slot.empty .swatch::after { display: none; }
+  /* The spool: flanges and core in the printer's greys, the filament in its color, as thick as what is left. */
+  .spool-svg { width: 40px; height: 48px; margin-bottom: 2px; overflow: visible; }
+  .spool-svg .flange { fill: var(--pc-frame); stroke: var(--pc-frame-edge); stroke-width: 1; }
+  .spool-svg .core { fill: var(--pc-metal-light); }
+  .spool-svg .fil-edge { fill: none; stroke: rgba(0,0,0,.18); stroke-width: .8; }
+  .spool-svg .wind { fill: none; stroke: rgba(0,0,0,.16); stroke-width: 1; }
+  .spool-svg .shine { fill: #fff; opacity: .22; }
+  .spool-svg .ghost { fill: none; stroke: var(--secondary-text-color); stroke-width: 1.2; stroke-dasharray: 3 2.5; opacity: .6; }
+  /* The spool in use while printing: its winding scrolls and a reflection runs across it. */
+  .slot.feeding .wind { animation: pc-wind 1.2s linear infinite; }
+  .slot.feeding .shine { animation: pc-shine 2.4s ease-in-out infinite; }
+  @keyframes pc-wind { to { transform: translateX(3px); } }
+  @keyframes pc-shine { from { transform: translateX(-6px); } to { transform: translateX(28px); } }
   .slot .ftype { font-size: 12px; font-weight: 500; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .slot .fname { font-size: 10px; color: var(--secondary-text-color); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .slot .bar { width: 80%; }
-  .camera img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; display: block; background: var(--secondary-background-color, rgba(127,127,127,.08)); }
+  .slot .fleft { font-size: 11px; font-weight: 500; color: var(--secondary-text-color); }
+  .slot .fleft.warn { color: color-mix(in srgb, var(--pc-warn) 55%, var(--primary-text-color)); }
+  .slot .fleft.crit { color: color-mix(in srgb, var(--pc-crit) 55%, var(--primary-text-color)); }
+  .slot.empty .ftype { color: var(--secondary-text-color); }
   @container (max-width: 340px) {
-    .ring { width: 96px; height: 96px; }
-    .hero { gap: 10px; }
-    .thumb { width: 60px; height: 60px; }
     .big { font-size: 26px; }
+    .media { aspect-ratio: 4 / 3; }
   }
   @container (max-width: 270px) {
-    .thumb { display: none; }
     .slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .prow { flex-wrap: wrap; }
+    .ptime { align-items: flex-start; text-align: left; }
   }
   @container (max-width: 210px) {
-    .ring { width: 76px; height: 76px; }
     .big { font-size: 22px; }
   }
 `;
@@ -386,12 +441,46 @@ export const COMMANDS = {
   stop: { text: "confirm_stop", icon: "stop", cls: "danger" },
 };
 
+// The stage's view chosen with its button (the print or the camera), kept per printer in this browser. The storage
+// can be missing or refuse (private browsing): the view is then the configured one.
+export const VIEW_KEY = "printer-3d-card.view.";
+export const loadView = (id) => {
+  try {
+    const v = typeof localStorage === "undefined" ? null : localStorage.getItem(VIEW_KEY + id);
+    return v === "print" || v === "camera" ? v : null;
+  } catch (_e) {
+    return null;
+  }
+};
+export const saveView = (id, view) => {
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem(VIEW_KEY + id, view);
+  } catch (_e) {
+    /* storage refused: the view lasts as long as the card */
+  }
+};
+
 export class PrinterBase extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
     this._html = "";
     this.shadowRoot.addEventListener("click", (ev) => this._onClick(ev));
+    // The print's preview, once loaded: its shape, for the box that holds it (see _media). Drawn again when it changes.
+    this.shadowRoot.addEventListener(
+      "load",
+      (ev) => {
+        const img = ev.target;
+        if (!img?.classList?.contains("pic") || !img.closest?.(".pbox") || !img.naturalWidth || !img.naturalHeight) return;
+        const r = Math.round((img.naturalWidth / img.naturalHeight) * 1000) / 1000;
+        const src = img.getAttribute("src");
+        if ((this._ratios ??= new Map()).get(src) === r) return;
+        this._ratios.set(src, r);
+        this._html = "";
+        this._update();
+      },
+      true,
+    );
     this.shadowRoot.addEventListener("pointerdown", () => {
       this._byPointer = true;
       // No rewrite of the card between the press and the release: Home Assistant updates the card several times a
@@ -498,6 +587,9 @@ export class PrinterBase extends HTMLElement {
     // back unfolded or with its popup open.
     this._toggled = new Map();
     this._confirm = null;
+    // Off the page: the live view stops (started again when the card comes back).
+    this._stream?.remove();
+    this._stream = null;
   }
 
   // The header's status pill goes right after the title, on its row, only while the title stays whole and the
@@ -581,23 +673,69 @@ export class PrinterBase extends HTMLElement {
       return;
     }
     this._dirty = false;
+    this._live = null;
     let html = this._render();
     if (this._confirm) {
       html = html.replace(/<ha-card([^>]*)>([\s\S]*)<\/ha-card>\s*$/, (_, attrs, inner) => `<ha-card${attrs} class="dialog-open">${inner}${this._confirmHtml()}</ha-card>`);
     }
-    if (html === this._html) return;
+    if (html === this._html) return this._syncStream();
     const focused = this._confirm && this.shadowRoot.activeElement?.dataset?.action;
     // The focus is kept across a rewrite for the keyboard only: after a mouse click, it would draw the focus ring.
     const kept = this._confirm || this._byPointer ? null : this._focusedSpot();
     this._html = html;
     this.shadowRoot.innerHTML = html;
     this._placeImages();
+    this._syncStream();
     this._fitPill();
     if (kept) this._focusables(kept.key)[kept.index]?.focus({ preventScroll: true });
     if (this._confirm) {
       const sel = focused === "confirm_cancel" ? '[data-action="confirm_cancel"]' : ".modal .primary";
       this.shadowRoot.querySelector(sel)?.focus({ preventScroll: true });
     }
+  }
+
+  // The camera's live view: Home Assistant's own player (WebRTC, HLS or MJPEG, whatever the camera offers), kept in
+  // the card's light DOM and shown through the stage's <slot>, so that the rewrites of the card (several a second
+  // while printing) never stop it. Started when the stage shows the camera, stopped as soon as it no longer does.
+  _syncStream() {
+    const id = this.isConnected === false ? null : this._live;
+    let el = this._stream;
+    if (el && (!id || el.dataset.entity !== id)) {
+      el.remove();
+      el = this._stream = null;
+    }
+    if (!id) return;
+    if (!customElements.get("ha-camera-stream")) return this._loadStream();
+    if (!el) {
+      el = this._stream = document.createElement("ha-camera-stream");
+      el.slot = "live";
+      el.dataset.entity = id;
+      el.muted = true;
+      el.controls = false;
+      el.allowExoPlayer = true;
+      el.fitMode = "contain";
+      el.setAttribute("fit-mode", "contain");
+      el.hass = this._hass;
+      el.stateObj = this._s(id);
+      this.appendChild(el);
+      return;
+    }
+    el.hass = this._hass;
+    el.stateObj = this._s(id);
+  }
+
+  // Home Assistant loads its camera player with the cards that use it: a picture-entity card created (not shown)
+  // brings it in. Until then the stage shows the camera's snapshot.
+  _loadStream() {
+    if (this._streamWait) return;
+    this._streamWait = true;
+    customElements.whenDefined?.("ha-camera-stream").then(() => {
+      this._html = "";
+      this._update();
+    });
+    Promise.resolve(window.loadCardHelpers?.())
+      .then((h) => h?.createCardElement({ type: "picture-entity", entity: this._live, camera_view: "live" }))
+      .catch(() => {});
   }
 
   _focusedSpot() {
@@ -656,6 +794,11 @@ export class PrinterBase extends HTMLElement {
     ev.stopPropagation();
     const { action, entity, cmd } = el.dataset;
     if (action === "zoom") return this._toggleZoom(ev);
+    if (action === "media_view") {
+      this._view = el.dataset.view;
+      if (this._dev) saveView(this._dev.id, this._view);
+      return this._update();
+    }
     if (action === "toggle_section") {
       const key = el.dataset.section;
       this._toggled = new Map(this._toggled).set(key, !this._isCollapsed(key));
@@ -960,14 +1103,13 @@ export class PrinterCard extends PrinterBase {
     const c = this._config;
     const phase = phaseOf(dev, this._hass.states);
     this._phase = phase;
-    const parts = [this._hero(dev, phase)];
+    const parts = [this._stage(dev, phase)];
     const buttons = c.show_controls !== false ? this._commands(dev, phase).map((cmd) => this._cmdButton(dev, cmd)) : [];
     const toggles = this._powerButton(dev) + this._lightButton(dev);
     if (buttons.length || toggles) parts.push(`<div class="controls">${buttons.join("")}${toggles}</div>`);
     if (c.show_temperatures !== false) parts.push(this._temperatures(dev));
     if (c.show_ams !== false) parts.push(this._ams(dev));
     if (c.show_job !== false) parts.push(this._job(dev, phase));
-    if (c.show_camera !== false) parts.push(this._camera(dev));
     return `<style>${BASE_STYLE}${FULL_STYLE}${this._bannerStyle()}${this._accentStyle(dev)}</style>
       <ha-card>
         ${this._header(dev, phase)}
@@ -975,38 +1117,105 @@ export class PrinterCard extends PrinterBase {
       </ha-card>`;
   }
 
-  _hero(dev, phase) {
+  // The print's stage: its picture, the preview filling up layer by layer or the camera (live while Home Assistant
+  // can stream it), switched by the round button in its corner; under it, the progress and the remaining time.
+  _stage(dev, phase) {
     const pct = this._progress(dev, phase);
-    const job = JOB_PHASES.has(phase);
-    const big =
-      job || (phase === "finished" && pct !== null)
-        ? `<div class="big">${pct === null ? "—" : `${pct}<small>%</small>`}</div>`
-        : `<div class="big word">${esc(phase === "finished" ? this._t("done") : phase === "idle" ? this._t("ready") : this._t(`s_${phase}`))}</div>`;
-    const lines = [];
-    const err = this._error(dev, phase);
-    if (err) lines.push(`<div class="alert-line">${svgIcon(ICONS.alert)}<span>${esc(err)}</span></div>`);
-    lines.push(this._timeLine(dev, phase));
-    const layers = job || phase === "finished" ? this._layers(dev) : "";
-    if (layers) lines.push(`<div class="line clickable" role="button" tabindex="0" data-entity="${esc(dev.e.layer)}">${svgIcon(ICONS.layers)}<span>${esc(layers)}</span></div>`);
-    const stage = job && dev.e.stage ? this._fmtState(this._s(dev.e.stage)) : null;
-    if (stage && stage.toLowerCase() !== this._t(`s_${phase}`).toLowerCase()) lines.push(`<div class="line clickable" role="button" tabindex="0" data-entity="${esc(dev.e.stage)}">${svgIcon(ICONS.info)}<span>${esc(stage)}</span></div>`);
-    return `<div class="hero">
-      ${this._ring(dev, phase, pct, printerSvg(phase, pct, this._filament(dev)))}
-      <div class="info">${big}${lines.filter(Boolean).join("")}</div>
-      ${this._thumb(dev)}
-    </div>`;
+    return `<div class="stage ${PHASE_CLASS[phase]} ${RING_ANIM[phase] || ""} ph-${phase}">${this._media(dev, phase, pct)}${this._progressBlock(dev, phase, pct)}</div>`;
   }
 
-  // Thumbnail of the print: the integration's cover image (Bambu Lab, PrusaLink, Moonraker), else the camera.
-  _thumb(dev) {
-    if (this._config.show_thumbnail === false) return "";
-    for (const id of [dev.e.cover, this._config.show_camera === false ? dev.e.camera : null]) {
-      const url = this._s(id)?.attributes?.entity_picture;
-      if (url && this._s(id).state !== "unavailable") {
-        return `<div class="thumb clickable" role="button" tabindex="0" data-entity="${esc(id)}" aria-label="${esc(this._t("thumbnail"))}"><img src="${esc(url)}" alt=""></div>`;
-      }
+  // The pictures the stage can show: the print's preview (cover image, job preview, thumbnail) and the camera.
+  _views(dev) {
+    const c = this._config;
+    const shown = (id) => {
+      const s = this._s(id);
+      return s && s.state !== "unavailable" && s.attributes?.entity_picture ? id : null;
+    };
+    return { print: c.show_thumbnail !== false ? shown(dev.e.cover) : null, camera: c.show_camera !== false ? shown(dev.e.camera) : null };
+  }
+
+  // The view on screen: the last one chosen with the button (kept for this printer in the browser), else
+  // `media_view`, else the print; the other one when it has no picture.
+  _mediaView(dev, views) {
+    let v = this._view ?? loadView(dev.id) ?? this._config.media_view ?? "print";
+    if (!views[v]) v = v === "print" ? "camera" : "print";
+    return views[v] ? v : null;
+  }
+
+  // How much of the print is done, 0 to 1, to fill its preview: by layer, else by progress. Nothing outside a job.
+  _done(dev, phase, pct) {
+    if (phase === "finished") return 1;
+    if (!JOB_PHASES.has(phase)) return null;
+    const n = num(this._s(dev.e.layer));
+    const total = num(this._s(dev.e.total_layers));
+    if (n !== null && total) return clamp(n / total, 0, 1);
+    return pct === null ? null : pct / 100;
+  }
+
+  _media(dev, phase, pct) {
+    const views = this._views(dev);
+    const view = this._mediaView(dev, views);
+    const badge = BADGES[phase] ? `<span class="pbadge ${PHASE_CLASS[phase]}">${BADGES[phase]}</span>` : "";
+    // No picture: the drawn printer, animated by the phase.
+    if (!view) {
+      const id = dev.e.progress || dev.e.status || "";
+      return `<div class="frame"><div class="media art clickable" role="button" tabindex="0" data-entity="${esc(id)}" aria-label="${esc(this._t("s_" + phase))}">${printerSvg(
+        phase,
+        pct,
+        this._filament(dev),
+      )}${badge}</div></div>`;
     }
-    return "";
+    const id = views[view];
+    const url = esc(this._s(id).attributes.entity_picture);
+    let body;
+    if (view === "print") {
+      // In a box of the picture's own shape (measured once loaded), so that the level line spans the picture alone.
+      const done = this._done(dev, phase, pct);
+      const ar = this._ratios?.get(this._s(id).attributes.entity_picture) ?? 1;
+      const todo = done === null ? 0 : Math.round((1 - done) * 1000) / 10;
+      body = `<div class="pbox" style="--ar:${ar};--todo:${todo}%">${
+        done === null || todo === 0
+          ? `<img class="pic" src="${url}" alt="">`
+          : `<img class="pic todo" src="${url}" alt=""><img class="pic done" src="${url}" alt=""><span class="level"></span>`
+      }</div>`;
+    } else {
+      const live = id.startsWith("camera.") && this._config.camera_view !== "auto" && !this.preview;
+      if (live) this._live = id;
+      // The "Live" tag only once Home Assistant's player is there: until then the snapshot shows.
+      const tag = live && customElements.get("ha-camera-stream") ? `<span class="tag"><span class="rec"></span>${esc(this._t("live"))}</span>` : "";
+      body = `<img class="pic" src="${url}" alt="">${live ? `<slot name="live"></slot>${tag}` : ""}`;
+    }
+    const other = view === "print" ? "camera" : "print";
+    const btn = (attrs, icon, label) => `<button class="mbtn" ${attrs} title="${esc(label)}" aria-label="${esc(label)}">${svgIcon(icon)}</button>`;
+    const btns = [];
+    if (views[other]) btns.push(btn(`data-action="media_view" data-view="${other}"`, other === "camera" ? ICONS.video : ICONS.cube, this._t(other === "camera" ? "view_camera" : "view_print")));
+    if (view === "camera") btns.push(btn(`data-entity="${esc(id)}"`, ICONS.expand, this._t("open_camera")));
+    return `<div class="frame"><div class="media ${view} clickable" role="button" tabindex="0" data-entity="${esc(id)}" aria-label="${esc(
+      this._t(view === "print" ? "thumbnail" : "camera"),
+    )}">${body}${badge}</div>${btns.length ? `<div class="mbtns">${btns.join("")}</div>` : ""}</div>`;
+  }
+
+  // The progress under the picture: the big percentage (or the state), the remaining time and the estimated end, the
+  // bar in the phase's color, and the layer and the stage.
+  _progressBlock(dev, phase, pct) {
+    const job = JOB_PHASES.has(phase);
+    const shown = job || (phase === "finished" && pct !== null);
+    const label = `${this._t("progress")} ${pct === null ? "—" : `${pct} %`}`;
+    const big = shown
+      ? `<div class="big clickable" role="button" tabindex="0" data-entity="${esc(dev.e.progress || dev.e.status || "")}" aria-label="${esc(label)}">${pct === null ? "—" : `${pct}<small>%</small>`}</div>`
+      : `<div class="big word">${esc(phase === "finished" ? this._t("done") : phase === "idle" ? this._t("ready") : this._t(`s_${phase}`))}</div>`;
+    const err = this._error(dev, phase);
+    const meta = [];
+    const layers = job || phase === "finished" ? this._layers(dev) : "";
+    if (layers) meta.push(`<div class="line clickable" role="button" tabindex="0" data-entity="${esc(dev.e.layer)}">${svgIcon(ICONS.layers)}<span>${esc(layers)}</span></div>`);
+    const stage = job && dev.e.stage ? this._fmtState(this._s(dev.e.stage)) : null;
+    if (stage && stage.toLowerCase() !== this._t(`s_${phase}`).toLowerCase()) meta.push(`<div class="line clickable" role="button" tabindex="0" data-entity="${esc(dev.e.stage)}">${svgIcon(ICONS.info)}<span>${esc(stage)}</span></div>`);
+    const bar = shown ? `<div class="pbar"><div style="width:${pct ?? 0}%"></div></div>` : "";
+    return `<div class="progress">
+      ${err ? `<div class="alert-line">${svgIcon(ICONS.alert)}<span>${esc(err)}</span></div>` : ""}
+      <div class="prow">${big}<div class="ptime">${this._timeLine(dev, phase, true)}</div></div>
+      ${bar}${meta.length ? `<div class="pmeta">${meta.join("")}</div>` : ""}
+    </div>`;
   }
 
   _isCollapsed(key) {
@@ -1045,19 +1254,26 @@ export class PrinterCard extends PrinterBase {
     return tiles.length ? `<div class="tiles">${tiles.join("")}</div>` : "";
   }
 
+  // One AMS slot or external spool: the spool drawn in its filament's color, as full as what is left, then the type,
+  // the name and the percentage left. The slot in use is outlined; its spool turns while printing.
   _slot(id) {
     const s = this._s(id);
     if (!s) return "";
     const a = s.attributes || {};
     const empty = a.empty === true || (!valid(s) && !a.type) || String(s.state).toLowerCase() === "empty";
-    const color = filamentColor(a.color);
     const remain = Number(a.remain);
-    const bar = !empty && Number.isFinite(remain) && remain >= 0 ? `<div class="bar ${remain <= 10 ? "crit" : remain <= 25 ? "warn" : "ok"}"><div style="width:${clamp(Math.round(remain), 0, 100)}%"></div></div>` : "";
-    const label = empty ? this._t("empty") : [a.type, valid(s) ? s.state : "", Number.isFinite(remain) && remain >= 0 ? `${Math.round(remain)} %` : ""].filter(Boolean).join(", ");
-    return `<div class="slot clickable${empty ? " empty" : ""}${a.active ? " active" : ""}" role="button" tabindex="0" data-entity="${esc(id)}" aria-label="${esc(label)}" title="${esc(label)}">
-      <span class="swatch" style="--sw:${esc(color || "transparent")}"></span>
+    const known = !empty && Number.isFinite(remain) && remain >= 0;
+    const level = known ? remain / 100 : 1;
+    const color = empty ? null : filamentColor(a.color) || "var(--pc-idle)";
+    const clip = `pc-spool-${id.replace(/[^a-z0-9_]/gi, "_")}`;
+    const label = empty ? this._t("empty") : [a.type, valid(s) ? s.state : "", known ? `${Math.round(remain)} %` : ""].filter(Boolean).join(", ");
+    const feeding = a.active && this._phase === "printing" ? " feeding" : "";
+    return `<div class="slot clickable${empty ? " empty" : ""}${a.active ? " active" : ""}${feeding}" role="button" tabindex="0" data-entity="${esc(id)}" aria-label="${esc(label)}" title="${esc(label)}">
+      ${spoolSvg(color, level, clip)}
       <span class="ftype">${esc(empty ? this._t("empty") : a.type || "—")}</span>
-      <span class="fname">${esc(empty ? "" : valid(s) ? s.state : "")}</span>${bar}</div>`;
+      <span class="fname">${esc(empty ? "" : valid(s) ? s.state : "")}</span>${
+        known ? `<span class="fleft${remain <= 10 ? " crit" : remain <= 25 ? " warn" : ""}">${Math.round(remain)} %</span>` : ""
+      }</div>`;
   }
 
   _ams(dev) {
@@ -1068,7 +1284,7 @@ export class PrinterCard extends PrinterBase {
       const temp = this._s(u.e.ams_temp);
       const meta = [
         hum !== null ? `<span class="hum clickable" role="button" tabindex="0" data-entity="${esc(u.e.humidity)}" title="${esc(this._t("humidity"))}">${svgIcon(ICONS.humidity)}${Math.round(hum)} %</span>` : idx !== null ? `<span class="hum clickable" role="button" tabindex="0" data-entity="${esc(u.e.humidity_index)}" title="${esc(this._t("humidity"))}">${svgIcon(ICONS.humidity)}${Math.round(idx)}/5</span>` : "",
-        valid(temp) ? `<span>${esc(fmtTemp(temp, locale))}</span>` : "",
+        valid(temp) ? `<span class="hum">${svgIcon(ICONS.thermometer)}${esc(fmtTemp(temp, locale))}</span>` : "",
       ].join("");
       return `<div class="unit"><div class="unit-head"><span class="unit-name">${esc(u.name)}</span>${meta}</div><div class="slots">${u.trays.map((id) => this._slot(id)).join("")}</div></div>`;
     });
@@ -1104,14 +1320,6 @@ export class PrinterCard extends PrinterBase {
     const file = this._s(dev.e.file);
     if (valid(file)) tiles.push(this._tile(dev.e.file, ICONS.file, this._t("file"), esc(file.state), "wide", file.state));
     return tiles.length ? this._section("job", ICONS.timer, this._t("job"), `<div class="tiles">${tiles.join("")}</div>`) : "";
-  }
-
-  _camera(dev) {
-    const id = dev.e.camera;
-    const s = this._s(id);
-    const url = s?.attributes?.entity_picture;
-    if (!url || s.state === "unavailable") return "";
-    return this._section("camera", ICONS.camera, this._t("camera"), `<div class="camera clickable" role="button" tabindex="0" data-entity="${esc(id)}" aria-label="${esc(this._t("camera"))}"><img src="${esc(url)}" alt=""></div>`);
   }
 }
 

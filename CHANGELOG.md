@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 - 2026-11-26
+
+### Features
+- The print's stage on the full card (and the mini card's detail view), in place of the ring, the thumbnail and the camera section: the print's preview filling up layer by layer — what is left faded, the printed part in color under a level line in the state's color — or the camera, switched by a round button in its corner and kept per printer in the browser. Under it, the big percentage, the remaining time and estimated end, and a progress bar in the state's color (a highlight runs along it while printing, stripes slide while preparing, it breathes when paused). With neither picture, the drawn printer takes the stage
+- Live camera: the camera streams through Home Assistant's own player (WebRTC, HLS or MJPEG), kept running across the card's updates and stopped as soon as it leaves the screen; a « Live » tag, and a button to open it full size. New options `media_view` (`print` or `camera`, the picture shown first) and `camera_view` (`live` or `auto` for refreshed snapshots), in the visual editor too
+- AMS and external spool: each spool drawn in its filament's color, as full as what is left, with its remaining percentage (amber, then red when running low); the spool in use turns while printing; AMS temperature with its icon
+- The `camera` section is gone (the camera is on the stage): `collapsed` keeps `ams` and `job`
+
 ## 1.2.0 - 2026-11-24
 
 ### Features
