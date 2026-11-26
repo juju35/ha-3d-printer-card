@@ -23,7 +23,7 @@ export const shots = twins([
   { file: "mini-card-prusalink", theme: "dark", ...MINI, config: { device: "Prusa MK4" } },
   { file: "mini-card-zoom", theme: "light", ...MINI, width: 460, config: { device: "X1 Carbon", show_camera: false }, clicks: [".zoom"] },
   // Narrow cards: the full card at 6 of 12 columns of a phone's Sections view (~170 px is the mini card's; the full
-  // card is shown at 238 px) with the ring, tiles and filament slots laid out for that width.
+  // card is shown at 238 px) with the stage, tiles and spools laid out for that width.
   { file: "card-narrow", theme: "light", ...FULL, width: 238, config: { device: "X1 Carbon", show_camera: false, collapsed: [] } },
   { file: "mini-card-narrow", theme: "light", ...MINI, width: 170, config: { device: "X1 Carbon" } },
 ]);

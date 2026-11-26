@@ -2,7 +2,7 @@
 // Styles
 // ---------------------------------------------------------------------------
 import { ICONS } from "./core.js";
-import { BRANDS, DEFAULT_COLLAPSED, JOB_PHASES, PHASE_CLASS, RING_ANIM } from "./integrations.js";
+import { BRANDS, DEFAULT_COLLAPSED, JOB_PHASES, PHASE_CLASS, RING_ANIM, SECTIONS } from "./integrations.js";
 import { ago, clamp, esc, filamentColor, fmtClock, fmtHours, fmtTemp, fmtUnit, hoursOf, intlLocale, num, pretty, svgIcon, t, valid } from "./helpers.js";
 import { findPrinter, phaseOf, resolve } from "./registry-based-resolution.js";
 import { BADGES, printerSvg, ringSvg, spoolSvg } from "./printer-picture.js";
@@ -221,7 +221,7 @@ export const FULL_STYLE = `
   /* Printing: a highlight runs along the bar. Preparing: stripes slide. Paused: the bar breathes. */
   .anim-printing .pbar > div::after { content: ""; position: absolute; inset: 0; width: 40%;
                                       background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); animation: pc-sweep 2.2s ease-in-out infinite; }
-  .anim-preparing .pbar > div { min-width: 100%; background: repeating-linear-gradient(-45deg, var(--c) 0 8px, color-mix(in srgb, var(--c) 45%, transparent) 8px 16px);
+  .anim-preparing .pbar > div { background: repeating-linear-gradient(-45deg, var(--c) 0 8px, color-mix(in srgb, var(--c) 45%, transparent) 8px 16px);
                                 background-size: 22.6px 100%; animation: pc-stripes .8s linear infinite; }
   .anim-paused .pbar > div { animation: pc-fade 3s ease-in-out infinite; }
   .pmeta { display: flex; flex-wrap: wrap; gap: 4px 14px; }
@@ -466,16 +466,17 @@ export class PrinterBase extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this._html = "";
     this.shadowRoot.addEventListener("click", (ev) => this._onClick(ev));
-    // The print's preview, once loaded: its shape, for the box that holds it (see _media). Drawn again when it changes.
+    // The print's preview, once loaded: its shape, for the box that holds it (see _media), kept per entity (its URL
+    // changes with each new access token). Drawn again when it changes.
     this.shadowRoot.addEventListener(
       "load",
       (ev) => {
         const img = ev.target;
-        if (!img?.classList?.contains("pic") || !img.closest?.(".pbox") || !img.naturalWidth || !img.naturalHeight) return;
+        const id = img?.classList?.contains("pic") ? img.closest?.(".pbox")?.dataset.ratio : null;
+        if (!id || !img.naturalWidth || !img.naturalHeight) return;
         const r = Math.round((img.naturalWidth / img.naturalHeight) * 1000) / 1000;
-        const src = img.getAttribute("src");
-        if ((this._ratios ??= new Map()).get(src) === r) return;
-        this._ratios.set(src, r);
+        if ((this._ratios ??= new Map()).get(id) === r) return;
+        this._ratios.set(id, r);
         this._html = "";
         this._update();
       },
@@ -587,9 +588,11 @@ export class PrinterBase extends HTMLElement {
     // back unfolded or with its popup open.
     this._toggled = new Map();
     this._confirm = null;
-    // Off the page: the live view stops (started again when the card comes back).
+    // Off the page: the live view and the snapshot refresh stop (started again when the card comes back).
     this._stream?.remove();
     this._stream = null;
+    clearInterval(this._snapTimer);
+    this._snapTimer = null;
   }
 
   // The header's status pill goes right after the title, on its row, only while the title stays whole and the
@@ -646,6 +649,9 @@ export class PrinterBase extends HTMLElement {
   setConfig(config) {
     if (!config) throw new Error("Invalid configuration");
     this._config = { ...config };
+    // `camera` was a section before the stage took the camera: dropped, as any value that is no section.
+    if (Array.isArray(config.collapsed)) this._config.collapsed = config.collapsed.filter((k) => SECTIONS.includes(k));
+    else if (config.collapsed !== undefined && !SECTIONS.includes(config.collapsed)) this._config.collapsed = [];
     this.toggleAttribute?.("hide-title", config.show_title === false);
     this.toggleAttribute?.("hide-subtitle", config.show_subtitle === false);
     this._html = "";
@@ -674,17 +680,22 @@ export class PrinterBase extends HTMLElement {
     }
     this._dirty = false;
     this._live = null;
+    this._snapId = null;
     let html = this._render();
     if (this._confirm) {
       html = html.replace(/<ha-card([^>]*)>([\s\S]*)<\/ha-card>\s*$/, (_, attrs, inner) => `<ha-card${attrs} class="dialog-open">${inner}${this._confirmHtml()}</ha-card>`);
     }
-    if (html === this._html) return this._syncStream();
+    if (html === this._html) {
+      this._syncSnapshot();
+      return this._syncStream();
+    }
     const focused = this._confirm && this.shadowRoot.activeElement?.dataset?.action;
     // The focus is kept across a rewrite for the keyboard only: after a mouse click, it would draw the focus ring.
     const kept = this._confirm || this._byPointer ? null : this._focusedSpot();
     this._html = html;
     this.shadowRoot.innerHTML = html;
     this._placeImages();
+    this._syncSnapshot();
     this._syncStream();
     this._fitPill();
     if (kept) this._focusables(kept.key)[kept.index]?.focus({ preventScroll: true });
@@ -722,6 +733,40 @@ export class PrinterBase extends HTMLElement {
     }
     el.hass = this._hass;
     el.stateObj = this._s(id);
+  }
+
+  // The camera's snapshot to draw: the last one refreshed (see _syncSnapshot) while it belongs to this picture,
+  // else the entity's own. A new access token (a new picture URL) starts again from the entity's.
+  _snapshot(id) {
+    const base = this._s(id).attributes.entity_picture;
+    this._snapId = id;
+    if (this._snap?.base !== base) this._snap = { base, src: base };
+    return this._snap.src;
+  }
+
+  // While a snapshot shows, a fresh one every 10 s, as Home Assistant's own picture cards do: loaded aside, then
+  // swapped in place, so that the picture never goes blank in between.
+  _syncSnapshot() {
+    const on = this._snapId && this.isConnected !== false;
+    if (!on) {
+      clearInterval(this._snapTimer);
+      this._snapTimer = null;
+      return;
+    }
+    if (this._snapTimer) return;
+    this._snapTimer = setInterval(() => {
+      const snap = this._snap;
+      if (!snap || !this._snapId || typeof Image === "undefined" || snap.base.startsWith("data:")) return;
+      const src = `${snap.base}${snap.base.includes("?") ? "&" : "?"}_t=${Date.now()}`;
+      const img = new Image();
+      img.onload = () => {
+        if (this._snap !== snap) return;
+        snap.src = src;
+        const shown = this.shadowRoot.querySelector?.(".media.camera .pic");
+        if (shown) shown.src = src;
+      };
+      img.src = src;
+    }, 10000);
   }
 
   // Home Assistant loads its camera player with the cards that use it: a picture-entity card created (not shown)
@@ -947,7 +992,7 @@ export class PrinterBase extends HTMLElement {
     const zoom = this._zoomButton();
     const night = isNight(this._hass, this._config);
     const file = JOB_PHASES.has(phase) || phase === "finished" ? this._fileName(dev) : "";
-    // The body's ring already shows the progress (full card, expanded mini card): the subtitle names the print
+    // The body's stage already shows the progress (full card, expanded mini card): the subtitle names the print
     // instead. The compact mini card has no room for the name: its subtitle keeps the progress.
     const sub = this._heroInBody() ? file || dev.model || b.name : JOB_PHASES.has(phase) && pct !== null ? `${pct} %` : dev.model || b.name;
     return `
@@ -1171,9 +1216,9 @@ export class PrinterCard extends PrinterBase {
     if (view === "print") {
       // In a box of the picture's own shape (measured once loaded), so that the level line spans the picture alone.
       const done = this._done(dev, phase, pct);
-      const ar = this._ratios?.get(this._s(id).attributes.entity_picture) ?? 1;
+      const ar = this._ratios?.get(id) ?? 1;
       const todo = done === null ? 0 : Math.round((1 - done) * 1000) / 10;
-      body = `<div class="pbox" style="--ar:${ar};--todo:${todo}%">${
+      body = `<div class="pbox" data-ratio="${esc(id)}" style="--ar:${ar};--todo:${todo}%">${
         done === null || todo === 0
           ? `<img class="pic" src="${url}" alt="">`
           : `<img class="pic todo" src="${url}" alt=""><img class="pic done" src="${url}" alt=""><span class="level"></span>`
@@ -1182,8 +1227,11 @@ export class PrinterCard extends PrinterBase {
       const live = id.startsWith("camera.") && this._config.camera_view !== "auto" && !this.preview;
       if (live) this._live = id;
       // The "Live" tag only once Home Assistant's player is there: until then the snapshot shows.
-      const tag = live && customElements.get("ha-camera-stream") ? `<span class="tag"><span class="rec"></span>${esc(this._t("live"))}</span>` : "";
-      body = `<img class="pic" src="${url}" alt="">${live ? `<slot name="live"></slot>${tag}` : ""}`;
+      const player = live && customElements.get("ha-camera-stream");
+      const tag = player ? `<span class="tag"><span class="rec"></span>${esc(this._t("live"))}</span>` : "";
+      // The snapshot alone (camera_view: auto, or until the player is loaded): refreshed every 10 s.
+      const src = player ? url : esc(this._snapshot(id));
+      body = `<img class="pic" src="${src}" alt="">${live ? `<slot name="live"></slot>${tag}` : ""}`;
     }
     const other = view === "print" ? "camera" : "print";
     const btn = (attrs, icon, label) => `<button class="mbtn" ${attrs} title="${esc(label)}" aria-label="${esc(label)}">${svgIcon(icon)}</button>`;
@@ -1199,7 +1247,9 @@ export class PrinterCard extends PrinterBase {
   // bar in the phase's color, and the layer and the stage.
   _progressBlock(dev, phase, pct) {
     const job = JOB_PHASES.has(phase);
-    const shown = job || (phase === "finished" && pct !== null);
+    // Preparing before the first percent: the state as the big word and a bar that waits (stripes across).
+    const waiting = phase === "preparing" && !pct;
+    const shown = (job && !waiting) || (phase === "finished" && pct !== null);
     const label = `${this._t("progress")} ${pct === null ? "—" : `${pct} %`}`;
     const big = shown
       ? `<div class="big clickable" role="button" tabindex="0" data-entity="${esc(dev.e.progress || dev.e.status || "")}" aria-label="${esc(label)}">${pct === null ? "—" : `${pct}<small>%</small>`}</div>`
@@ -1210,7 +1260,7 @@ export class PrinterCard extends PrinterBase {
     if (layers) meta.push(`<div class="line clickable" role="button" tabindex="0" data-entity="${esc(dev.e.layer)}">${svgIcon(ICONS.layers)}<span>${esc(layers)}</span></div>`);
     const stage = job && dev.e.stage ? this._fmtState(this._s(dev.e.stage)) : null;
     if (stage && stage.toLowerCase() !== this._t(`s_${phase}`).toLowerCase()) meta.push(`<div class="line clickable" role="button" tabindex="0" data-entity="${esc(dev.e.stage)}">${svgIcon(ICONS.info)}<span>${esc(stage)}</span></div>`);
-    const bar = shown ? `<div class="pbar"><div style="width:${pct ?? 0}%"></div></div>` : "";
+    const bar = shown || waiting ? `<div class="pbar${waiting ? " waiting" : ""}"><div style="width:${waiting ? 100 : (pct ?? 0)}%"></div></div>` : "";
     return `<div class="progress">
       ${err ? `<div class="alert-line">${svgIcon(ICONS.alert)}<span>${esc(err)}</span></div>` : ""}
       <div class="prow">${big}<div class="ptime">${this._timeLine(dev, phase, true)}</div></div>

@@ -178,8 +178,8 @@ language: fr
 | `show_job` | both | `true` | Print job details: start time, weight, filament length, speed, material, file |
 | `show_camera` | both | `true` | The camera on the stage (click it, or its corner button, to open it full size) |
 | `media_view` | both | `print` | Picture the stage shows first: `print` (the preview) or `camera`. Once switched with the corner button, the choice is kept per printer in the browser. The other one shows when the first has no picture |
-| `camera_view` | both | `live` | `live`: the camera streams through Home Assistant's player (its snapshot until the player is loaded); `auto`: snapshots refreshed by Home Assistant |
-| `collapsed` | both | `[job]` | Sections folded by default, among `ams` and `job` (`[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it; a click anywhere else folds them back |
+| `camera_view` | both | `live` | `live`: the camera streams through Home Assistant's player (its snapshot, refreshed every 10 s, until the player is loaded); `auto`: the camera's snapshot, refreshed every 10 s |
+| `collapsed` | both | `[job]` | Sections folded by default, among `ams` and `job` (the former `camera` is ignored; `[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it; a click anywhere else folds them back |
 | `camera_entity` | both | — | Camera or image entity to show instead of the integration's camera |
 | `light_entity` | both | — | Light or switch entity for the light button |
 | `power_entity` | both | — | Switch (a smart plug, Zigbee or other), light or input boolean that powers the printer: adds a power button. Turning it on is immediate; turning it off asks for a confirmation (which warns when a print is under way). The button stays while the printer is off or offline |

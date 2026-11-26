@@ -472,7 +472,7 @@ test("the stage: the preview filled up to the layer printed, the camera at the b
   const card = newCard();
   let h = html(card);
   // Layer 112 of 238: 52.9 % of the preview still to print, faded, under the level line.
-  assert.match(h, /class="pbox" style="--ar:1;--todo:52.9%"/);
+  assert.match(h, /class="pbox" data-ratio="image.x1_carbon_cover_image" style="--ar:1;--todo:52.9%"/);
   assert.match(h, /class="pic todo"[\s\S]*class="pic done"[\s\S]*class="level"/);
   assert.match(h, /data-action="media_view" data-view="camera"[^>]*aria-label="Show the camera"/);
   assert.doesNotMatch(h, /<slot name="live">/);
@@ -508,8 +508,10 @@ test("the live view is Home Assistant's camera player, kept in the light DOM and
       this.removed = true;
     }
   }
-  pc.window.customElements.define("ha-camera-stream", Stream);
-  const card = new pc.PrinterCard();
+  // A sandbox of its own: the player defined here stays out of the other tests.
+  const own = load();
+  own.window.customElements.define("ha-camera-stream", Stream);
+  const card = new own.PrinterCard();
   card.appendChild = (el) => added.push(el);
   card.setConfig({ device: "X1 Carbon", media_view: "camera" });
   card.hass = makeHass();
@@ -525,4 +527,40 @@ test("the live view is Home Assistant's camera player, kept in the light DOM and
   assert.equal(added.length, 2);
   card.disconnectedCallback();
   assert.equal(added[1].removed, true, "off the page: the player stops");
+});
+
+test("the snapshot refreshes every 10 s while it shows, and stops with the player or off the page", () => {
+  const sb = load();
+  const card = new sb.PrinterCard();
+  card.setConfig({ device: "X1 Carbon", media_view: "camera", camera_view: "auto" });
+  card.hass = makeHass();
+  assert.ok(card._snapTimer, "camera_view: auto starts the refresh");
+  assert.equal(sb.window.intervals.has(card._snapTimer), true);
+  click(card, { action: "media_view", view: "print" });
+  assert.equal(card._snapTimer, null, "back to the print: no refresh");
+  click(card, { action: "media_view", view: "camera" });
+  const timer = card._snapTimer;
+  card.disconnectedCallback();
+  assert.equal(sb.window.intervals.has(timer), false, "off the page: no refresh");
+});
+
+test("the preview's shape is kept per entity, whatever its access token", () => {
+  const card = newCard({ show_camera: false });
+  const listener = card.shadowRoot.listeners.load;
+  const img = { classList: { contains: (c) => c === "pic" }, closest: () => ({ dataset: { ratio: "image.x1_carbon_cover_image" } }), naturalWidth: 160, naturalHeight: 90 };
+  listener({ target: img });
+  assert.match(html(card), /data-ratio="image.x1_carbon_cover_image" style="--ar:1.778;/);
+  const id = "image.x1_carbon_cover_image";
+  const hass = makeHass();
+  card.hass = { ...hass, states: { ...hass.states, [id]: { ...hass.states[id], attributes: { entity_picture: "/api/image_proxy/x?token=new" } } } };
+  assert.match(html(card), /--ar:1.778;/, "a new token keeps the shape");
+});
+
+test("a config still folding the former camera section works, and preparing before the first percent waits", () => {
+  const card = newCard({ collapsed: ["camera", "job"] });
+  assert.deepEqual(plain(card._config.collapsed), ["job"]);
+  assert.deepEqual(plain(newCard({ collapsed: "camera" })._config.collapsed), []);
+  const prep = html(newCard({}, makeHass({ ...preparing, "sensor.x1_carbon_print_progress": { state: "0" } })));
+  assert.match(prep, /<div class="big word">Preparing<\/div>/);
+  assert.match(prep, /class="pbar waiting"><div style="width:100%">/);
 });

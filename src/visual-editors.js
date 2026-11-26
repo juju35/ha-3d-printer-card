@@ -63,6 +63,7 @@ export class PrinterEditorBase extends HTMLElement {
       this.appendChild(this._form);
     }
     const data = { ...this.constructor.defaults, ...this._config };
+    if (Array.isArray(data.collapsed)) data.collapsed = data.collapsed.filter((k) => SECTIONS.includes(k));
     for (const [name, def] of toggles) if (data[name] === undefined) data[name] = def;
     if (!data.device) data.device = PrinterCard.getStubConfig(this._hass).device;
     this._form.hass = this._hass;
