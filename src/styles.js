@@ -10,7 +10,7 @@ import { bannerPrinterSvg, isNight, workshopSvg } from "./header-illustration.js
 
 export const BASE_STYLE = `
   :host { --pc-accent: #00ae42; --pc-ok: var(--success-color, #43a047); --pc-warn: var(--warning-color, #ffa600);
-          --pc-crit: var(--error-color, #db4437); --pc-idle: var(--disabled-text-color, #9e9e9e); --pc-active: var(--info-color, #039be5);
+          --pc-crit: var(--error-color, #db4437); --pc-idle: var(--secondary-text-color, #9e9e9e); --pc-active: var(--info-color, #039be5);
           /* Text in a state or brand color is mixed with the text color so that it reads at 4.5:1 at least. */
           --pc-accent-text: color-mix(in srgb, var(--pc-accent) 50%, var(--primary-text-color)); }
   ha-card { overflow: hidden; container: pc-card / inline-size; }
