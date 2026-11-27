@@ -6,6 +6,7 @@ import "./integrations.js";
 import "./i18n/strings.js";
 import "./translations.js";
 import "./helpers.js";
+import "./in-place-redraw.js";
 import "./registry-based-resolution.js";
 import "./printer-picture.js";
 import "./header-illustration.js";
