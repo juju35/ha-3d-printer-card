@@ -7,6 +7,7 @@ import { ago, clamp, esc, filamentColor, fmtClock, fmtHours, fmtTemp, fmtUnit, h
 import { findPrinter, phaseOf, resolve } from "./registry-based-resolution.js";
 import { BADGES, printerSvg, ringSvg, spoolSvg } from "./printer-picture.js";
 import { bannerPrinterSvg, isNight, workshopSvg } from "./header-illustration.js";
+import { rcMorph } from "./in-place-redraw.js";
 
 export const BASE_STYLE = `
   :host { --pc-accent: #00ae42; --pc-ok: var(--success-color, #43a047); --pc-warn: var(--warning-color, #ffa600);
@@ -693,7 +694,8 @@ export class PrinterBase extends HTMLElement {
     // The focus is kept across a rewrite for the keyboard only: after a mouse click, it would draw the focus ring.
     const kept = this._confirm || this._byPointer ? null : this._focusedSpot();
     this._html = html;
-    this.shadowRoot.innerHTML = html;
+    // In place (see rcMorph): the nodes stay, so the card keeps its height, its animations and its focus.
+    rcMorph(this.shadowRoot, html);
     this._placeImages();
     this._syncSnapshot();
     this._syncStream();
